@@ -1,5 +1,5 @@
 [workspace]
-members = ["kernel", "services", "core", "db", "gui", "hal", "devices", "fs", "input", "compat", "llm", "search", "app", "tools", "config"]
+members = ["kernel", "services", "core", "db", "gui", "hal", "devices", "fs", "input", "compat", "llm", "search", "app", "tools", "config", "apps/calculator", "apps/file-manager"]
 resolver = "2"
 
 [workspace.package]

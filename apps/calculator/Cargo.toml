@@ -1,0 +1,18 @@
+[package]
+name = "lucastra-calculator"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tracing = { workspace = true }
+serde = { workspace = true }
+thiserror = "1.0"
+
+[lib]
+name = "lucastra_calculator"
+path = "src/lib.rs"
+
+[[bin]]
+name = "calculator"
+path = "src/main.rs"

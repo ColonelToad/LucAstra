@@ -1758,6 +1758,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "lucastra-calculator"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "lucastra-compat"
 version = "0.1.0"
 dependencies = [
@@ -1801,6 +1810,15 @@ version = "0.1.0"
 dependencies = [
  "lucastra-core",
  "lucastra-hal",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
+name = "lucastra-file-manager"
+version = "0.1.0"
+dependencies = [
+ "serde",
  "thiserror 1.0.69",
  "tracing",
 ]
