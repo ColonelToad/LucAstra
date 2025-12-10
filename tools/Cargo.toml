@@ -1,0 +1,17 @@
+[package]
+name = "lucastra-tools"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+lucastra-core = { path = "../core" }
+lucastra-search = { path = "../search" }
+lucastra-fs = { path = "../fs" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_System_Threading", "Win32_Foundation"] }

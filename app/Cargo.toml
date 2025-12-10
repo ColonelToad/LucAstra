@@ -1,0 +1,29 @@
+[package]
+name = "lucastra-app"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "lucastra_app"
+path = "src/lib.rs"
+
+[[bin]]
+name = "lucastra"
+path = "src/main.rs"
+
+[dependencies]
+lucastra-kernel = { path = "../kernel" }
+lucastra-services = { path = "../services" }
+lucastra-core = { path = "../core" }
+lucastra-hal = { path = "../hal" }
+lucastra-devices = { path = "../devices" }
+lucastra-fs = { path = "../fs" }
+lucastra-input = { path = "../input" }
+lucastra-compat = { path = "../compat" }
+lucastra-llm = { path = "../llm" }
+lucastra-search = { path = "../search" }
+lucastra-tools = { path = "../tools" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["fmt", "env-filter"] }
+serde_json = { workspace = true }

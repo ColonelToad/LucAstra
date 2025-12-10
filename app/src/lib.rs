@@ -1,0 +1,167 @@
+use lucastra_core::{Command, CommandPayload, Response, ResponsePayload};
+use lucastra_devices::DeviceManager;
+use lucastra_fs::FilesystemManager;
+use lucastra_hal::filesystem::MockFileSystem;
+use lucastra_input::InputManager;
+use lucastra_llm::LLMService;
+use lucastra_search::SearchService;
+use lucastra_services::ServiceRegistry;
+use lucastra_tools::{Tool, ToolResult, search::SearchTool, read::ReadTool, install::InstallTool};
+
+/// System state holding all services.
+pub struct SystemState {
+    pub service_registry: ServiceRegistry,
+    pub device_manager: DeviceManager,
+    pub filesystem: FilesystemManager,
+    pub input_manager: InputManager,
+    pub search_service: SearchService,
+    pub llm_service: LLMService,
+}
+
+impl SystemState {
+    /// Initialize all services and boot the OS.
+    pub fn new() -> lucastra_core::Result<Self> {
+        tracing::info!("Initializing LucAstra system state");
+
+        let service_registry = ServiceRegistry::new();
+        let mut device_manager = DeviceManager::new();
+        let mut filesystem = FilesystemManager::new();
+        let input_manager = InputManager::new();
+        let mut search_service = SearchService::new();
+        let llm_service = LLMService::new("http://localhost:8000".to_string());
+
+        // Scan devices
+        device_manager.scan()?;
+        tracing::info!("Found {} devices", device_manager.list_devices()?.len());
+
+        // Mount mock filesystem
+        let mock_fs = MockFileSystem::new();
+        filesystem.mount("/mnt/root", mock_fs)?;
+
+        // Index some example documents
+        search_service.index_document(
+            "/mnt/root/guide.txt",
+            "LucAstra is an augmented OS with embedded LLM. It supports RAG for contextual responses.",
+        )?;
+        search_service.index_document(
+            "/mnt/root/readme.txt",
+            "LucAstra OS runs on Rust. It integrates with llamafile for 7B model inference.",
+        )?;
+
+        Ok(Self {
+            service_registry,
+            device_manager,
+            filesystem,
+            input_manager,
+            search_service,
+            llm_service,
+        })
+    }
+
+    /// Handle a command and return a response.
+    pub fn handle_command(&mut self, cmd: Command) -> lucastra_core::Result<Response> {
+        match &cmd.payload {
+            CommandPayload::ListDevices => {
+                let devices = self.device_manager.list_devices()?;
+                let device_strs = devices
+                    .iter()
+                    .map(|d| format!("{} ({})", d.path, d.name))
+                    .collect::<Vec<_>>();
+                Ok(Response {
+                    command_id: cmd.id.clone(),
+                    payload: ResponsePayload::Devices(device_strs),
+                })
+            }
+            CommandPayload::Search { query } => {
+                let results = self.search_service.search(query, 5)?;
+                Ok(Response {
+                    command_id: cmd.id.clone(),
+                    payload: ResponsePayload::SearchResults(results),
+                })
+            }
+            CommandPayload::Query { text, use_rag } => {
+                let mut context = None;
+
+                // Retrieve context if RAG is enabled
+                if use_rag.unwrap_or(false) {
+                    let search_results = self.search_service.search(text, 3)?;
+                    context = Some(
+                        search_results
+                            .iter()
+                            .map(|r| r.snippet.clone())
+                            .collect(),
+                    );
+                }
+
+                // Call LLM
+                let response = self.llm_service.infer(lucastra_llm::InferenceRequest {
+                    prompt: text.clone(),
+                    max_tokens: Some(256),
+                    temperature: Some(0.7),
+                    context,
+                })?;
+
+                Ok(Response {
+                    command_id: cmd.id.clone(),
+                    payload: ResponsePayload::Success(response.text),
+                })
+            }
+            CommandPayload::Status => Ok(Response {
+                command_id: cmd.id.clone(),
+                payload: ResponsePayload::Status(format!(
+                    "LucAstra OS running. Devices: {}, Indexed docs: {}",
+                    self.device_manager.list_devices()?.len(),
+                    self.search_service.doc_count()
+                )),
+            }),
+            CommandPayload::Echo { message } => Ok(Response {
+                command_id: cmd.id.clone(),
+                payload: ResponsePayload::Success(format!("Echo: {}", message)),
+            }),
+            _ => Ok(Response {
+                command_id: cmd.id.clone(),
+                payload: ResponsePayload::Success("Command not implemented".to_string()),
+            }),
+        }
+    }
+
+    /// Execute a tool (for agentic tasks).
+    pub fn execute_tool(&self, tool: Tool) -> ToolResult {
+        match tool {
+            Tool::Search { query, top_k } => {
+                let search_tool = SearchTool::new(&self.search_service);
+                search_tool
+                    .execute(&query, top_k.unwrap_or(5))
+                    .unwrap_or_else(|e| ToolResult::failure("search", e.to_string()))
+            }
+            Tool::Read { path } => {
+                let read_tool = ReadTool::new(&self.filesystem);
+                read_tool
+                    .execute(&path)
+                    .unwrap_or_else(|e| ToolResult::failure("read", e.to_string()))
+            }
+            Tool::Install { program, method } => {
+                let install_tool = InstallTool::new();
+                install_tool
+                    .execute(&program, &method)
+                    .unwrap_or_else(|e| ToolResult::failure("install", e.to_string()))
+            }
+        }
+    }
+
+    /// Parse and execute tools from LLM JSON output.
+    pub fn execute_tools_from_json(&self, json_str: &str) -> Vec<ToolResult> {
+        let tools: Result<Vec<Tool>, _> = serde_json::from_str(json_str);
+        
+        match tools {
+            Ok(tools) => tools.iter().map(|tool| self.execute_tool(tool.clone())).collect(),
+            Err(e) => vec![ToolResult::failure("parse", format!("Failed to parse tools: {}", e))],
+        }
+    }
+}
+
+impl Default for SystemState {
+    fn default() -> Self {
+        Self::new().expect("Failed to initialize system state")
+    }
+}
