@@ -1,0 +1,21 @@
+[package]
+name = "lucastra-browser"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tracing = { workspace = true }
+serde = { workspace = true }
+thiserror = "1.0"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+tokio = { version = "1.40", features = ["full"] }
+regex = "1"
+
+[lib]
+name = "lucastra_browser"
+path = "src/lib.rs"
+
+[[bin]]
+name = "browser"
+path = "src/main.rs"
