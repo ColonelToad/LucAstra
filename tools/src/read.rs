@@ -1,4 +1,4 @@
-use crate::{Result, ToolError, ToolResult};
+use crate::{Result, ToolResult};
 use lucastra_fs::FilesystemManager;
 use tracing::info;
 

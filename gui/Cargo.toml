@@ -11,3 +11,5 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 lucastra-app = { path = "../app" }
 lucastra-core = { path = "../core" }
+lucastra-config = { path = "../config" }
+tracing-appender = { workspace = true }

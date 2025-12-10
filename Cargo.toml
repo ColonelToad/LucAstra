@@ -1,5 +1,5 @@
 [workspace]
-members = ["kernel", "services", "core", "db", "gui", "hal", "devices", "fs", "input", "compat", "llm", "search", "app", "tools"]
+members = ["kernel", "services", "core", "db", "gui", "hal", "devices", "fs", "input", "compat", "llm", "search", "app", "tools", "config"]
 resolver = "2"
 
 [workspace.package]
@@ -14,3 +14,4 @@ serde_json = "1.0"
 thiserror = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+tracing-appender = "0.2"

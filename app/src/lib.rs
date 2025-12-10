@@ -1,3 +1,4 @@
+use lucastra_config::Config;
 use lucastra_core::{Command, CommandPayload, Response, ResponsePayload};
 use lucastra_devices::DeviceManager;
 use lucastra_fs::FilesystemManager;
@@ -10,6 +11,7 @@ use lucastra_tools::{Tool, ToolResult, search::SearchTool, read::ReadTool, insta
 
 /// System state holding all services.
 pub struct SystemState {
+    pub config: Config,
     pub service_registry: ServiceRegistry,
     pub device_manager: DeviceManager,
     pub filesystem: FilesystemManager,
@@ -23,12 +25,23 @@ impl SystemState {
     pub fn new() -> lucastra_core::Result<Self> {
         tracing::info!("Initializing LucAstra system state");
 
+        // Load configuration
+        let config = Config::load().map_err(|e| {
+            tracing::error!("Failed to load config: {}", e);
+            lucastra_core::LuCastraError::ConfigError(format!("Config error: {}", e))
+        })?;
+
+        tracing::info!("Configuration loaded successfully");
+        tracing::debug!("LLM server: {}", config.llm.server_url);
+        tracing::debug!("Model size: {}", config.llm.model_size);
+        tracing::debug!("Data directory: {}", config.storage.data_dir.display());
+
         let service_registry = ServiceRegistry::new();
         let mut device_manager = DeviceManager::new();
         let mut filesystem = FilesystemManager::new();
         let input_manager = InputManager::new();
         let mut search_service = SearchService::new();
-        let llm_service = LLMService::new("http://localhost:8000".to_string());
+        let llm_service = LLMService::new(config.llm.server_url.clone());
 
         // Scan devices
         device_manager.scan()?;
@@ -49,6 +62,7 @@ impl SystemState {
         )?;
 
         Ok(Self {
+            config,
             service_registry,
             device_manager,
             filesystem,
@@ -56,6 +70,22 @@ impl SystemState {
             search_service,
             llm_service,
         })
+    }
+
+    /// Get current configuration
+    pub fn get_config(&self) -> &Config {
+        &self.config
+    }
+
+    /// Update configuration and save
+    pub fn update_config(&mut self, new_config: Config) -> lucastra_core::Result<()> {
+        new_config.save().map_err(|e| {
+            lucastra_core::LuCastraError::ConfigError(format!("Failed to save config: {}", e))
+        })?;
+        
+        self.config = new_config;
+        tracing::info!("Configuration updated and saved");
+        Ok(())
     }
 
     /// Handle a command and return a response.

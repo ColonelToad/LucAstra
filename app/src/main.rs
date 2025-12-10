@@ -1,16 +1,37 @@
 use lucastra_app::SystemState;
+use lucastra_config;
 use lucastra_core::{Command, CommandPayload};
 use lucastra_kernel::KernelConfig;
 use tracing::info;
+use tracing_subscriber::layer::SubscriberExt;
 
 fn main() -> lucastra_core::Result<()> {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter(
+    // Initialize rotating file logging
+    let logs_dir = lucastra_config::get_logs_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("./logs"));
+    
+    std::fs::create_dir_all(&logs_dir).ok();
+    
+    let file_appender = tracing_appender::rolling::daily(logs_dir, "lucastra.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    
+    let file_layer = tracing_subscriber::fmt::layer()
+        .with_writer(non_blocking)
+        .with_ansi(false);
+    
+    let stdout_layer = tracing_subscriber::fmt::layer()
+        .with_writer(std::io::stdout);
+    
+    let subscriber = tracing_subscriber::registry()
+        .with(
             tracing_subscriber::EnvFilter::from_default_env()
                 .add_directive(tracing_subscriber::filter::LevelFilter::INFO.into()),
         )
-        .init();
+        .with(file_layer)
+        .with(stdout_layer);
+    
+    tracing::subscriber::set_global_default(subscriber)
+        .map_err(|e| lucastra_core::LuCastraError::ServiceError(format!("Failed to set logger: {}", e)))?;
 
     info!("=== LucAstra OS Boot ===");
 

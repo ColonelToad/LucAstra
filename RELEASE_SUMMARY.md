@@ -179,6 +179,19 @@ Mock/Real Implementations
 - Module boundaries respected
 - Minimal dependencies
 
+## Hardware + RAG Roadmap (v0.2)
+
+### Hardware
+- Plug real device discovery into HAL (USB mass storage, keyboard/mouse) behind safe capability flags
+- Add opt-in GPU detection + telemetry gates for acceleration decisions
+- Prototype hardware auth surface (Windows Hello/Touch ID stubs) with config toggles and audit logging
+
+### RAG
+- Config-driven corpus roots (data/models) with path helpers from `lucastra-config`
+- Deterministic chunking + metadata (mtime, source) to prep for LanceDB/vector store swap
+- Dual-path retrieval: BM25 today, pluggable vector backend guarded by feature flag
+- Quality loop: capture prompts/responses + search context to file logs for offline evaluation
+
 ## Future Extensions (Post-MVP)
 
 ### Short Term (v0.2)

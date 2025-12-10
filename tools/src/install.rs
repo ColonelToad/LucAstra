@@ -1,4 +1,4 @@
-use crate::{InstallMethod, Result, ToolError, ToolResult};
+use crate::{InstallMethod, Result, ToolResult};
 use std::process::{Command, Stdio};
 use tracing::info;
 
