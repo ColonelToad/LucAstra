@@ -1751,6 +1751,7 @@ dependencies = [
  "lucastra-search",
  "lucastra-services",
  "lucastra-tools",
+ "serde",
  "serde_json",
  "tracing",
  "tracing-appender",

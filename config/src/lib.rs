@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::{env, path::PathBuf};
 use thiserror::Error;
 
+pub mod observability;
+pub use observability::{MetricsConfig, TracingConfig};
+
 #[derive(Debug, Error)]
 pub enum ConfigError {
     #[error("Failed to read config file: {0}")]
@@ -39,6 +42,12 @@ pub struct Config {
 
     #[serde(default)]
     pub advanced: AdvancedConfig,
+
+    #[serde(default)]
+    pub tracing: TracingConfig,
+
+    #[serde(default)]
+    pub metrics: MetricsConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -443,6 +452,8 @@ impl Default for Config {
             gui: GuiConfig::default(),
             security: SecurityConfig::default(),
             advanced: AdvancedConfig::default(),
+            tracing: TracingConfig::default(),
+            metrics: MetricsConfig::default(),
         }
     }
 }

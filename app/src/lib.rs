@@ -17,6 +17,10 @@ use lucastra_tools::{
 };
 use std::path::Path;
 
+pub mod observability;
+pub mod metrics;
+pub use metrics::{Metrics, MetricsSnapshot};
+
 #[cfg(feature = "relibc")]
 use lucastra_kernel::SyscallHandler;
 
@@ -29,6 +33,7 @@ pub struct SystemState {
     pub input_manager: InputManager,
     pub search_service: SearchService,
     pub llm_service: LLMService,
+    pub metrics: Metrics,
     #[cfg(feature = "relibc")]
     pub syscall_handler: Option<SyscallHandler>,
 }
@@ -74,6 +79,8 @@ impl SystemState {
             "LucAstra OS runs on Rust. It integrates with llamafile for 7B model inference.",
         )?;
 
+        let metrics = Metrics::new();
+
         Ok(Self {
             config,
             service_registry,
@@ -82,6 +89,7 @@ impl SystemState {
             input_manager,
             search_service,
             llm_service,
+            metrics,
             #[cfg(feature = "relibc")]
             syscall_handler: Some(SyscallHandler::new()),
         })
