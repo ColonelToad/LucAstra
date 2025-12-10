@@ -1,0 +1,5 @@
+[build]
+target-dir = "target"
+
+[env]
+LUC_ASTRA_MODEL_DIR = "model"
