@@ -115,6 +115,11 @@ impl SyscallHandler {
         self.file_data.insert(path.to_string(), data);
     }
 
+    /// Open a file by registered path (for testing/direct calls).
+    pub fn open_file(&mut self, path: &str, flags: i32) -> i32 {
+        self.fd_table.open(path, flags)
+    }
+
     /// Handle a syscall by number and arguments.
     /// Returns the syscall result or an error.
     pub fn handle_syscall(&mut self, syscall_num: u64, args: &[u64]) -> Result<i64> {

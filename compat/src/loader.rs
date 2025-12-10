@@ -127,15 +127,31 @@ pub struct ELFHeader {
     pub e_entry: u64,
 }
 
+/// ELF program header for segment information
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct ELFProgramHeader {
+    pub p_type: u32,
+    pub p_flags: u32,
+    pub p_offset: u64,
+    pub p_vaddr: u64,
+    pub p_paddr: u64,
+    pub p_filesz: u64,
+    pub p_memsz: u64,
+    pub p_align: u64,
+}
+
 /// ELF loader for binary execution.
 pub struct ElfLoader {
     elf_header: Option<ELFHeader>,
+    program_headers: Vec<ELFProgramHeader>,
 }
 
 impl ElfLoader {
     pub fn new() -> Self {
         Self {
             elf_header: None,
+            program_headers: Vec::new(),
         }
     }
 
@@ -187,17 +203,41 @@ impl ElfLoader {
         Ok(())
     }
 
+    /// Parse program headers (segments) from ELF data.
+    /// Assumes 64-bit little-endian (x86_64).
+    pub fn parse_program_headers(&mut self, data: &[u8]) -> Result<()> {
+        self.parse_header(data)?;
+
+        let _header = self.elf_header.as_ref().unwrap();
+
+        // Program header offset is typically at offset 0x20 for 64-bit
+        // For now, simplified: assume first program header at fixed offset
+        // Real ELF parsing requires e_phoff and e_phentsize from header
+        tracing::debug!(
+            "ELF has {} program header entries (stub parsing)",
+            "0 (not implemented)"
+        );
+
+        Ok(())
+    }
+
     /// Get the entry point address.
     pub fn entry_point(&self) -> Option<u64> {
         self.elf_header.as_ref().map(|h| h.e_entry)
     }
 
-    /// Load an ELF binary (stub for MVP).
+    /// Get program headers.
+    pub fn program_headers(&self) -> &[ELFProgramHeader] {
+        &self.program_headers
+    }
+
+    /// Load an ELF binary and return entry point.
     pub fn load(&mut self, data: &[u8]) -> Result<usize> {
         self.parse_header(data)?;
+        self.parse_program_headers(data)?;
         tracing::info!("Loading ELF binary ({} bytes)", data.len());
-        // Stub: return entry point as 0x1000
-        Ok(0x1000)
+        // Return entry point; real implementation would allocate memory and copy segments
+        Ok(self.entry_point().unwrap_or(0x1000) as usize)
     }
 }
 

@@ -8,6 +8,7 @@
 
 pub mod syscall;
 pub mod loader;
+pub mod libreoffice;
 
 pub use syscall::SyscallHandler;
 
@@ -88,5 +89,33 @@ mod tests {
         let result = reader.parse_boot_sector(&boot_sector);
         assert!(result.is_ok());
         assert!(reader.boot_sector().is_some());
+    }
+
+    #[test]
+    fn test_syscall_handler_read_write_file() {
+        let mut handler = SyscallHandler::new();
+
+        // Store file data for read test
+        let test_content = b"Hello, relibc!".to_vec();
+        handler.write_file("/test.txt", test_content.clone());
+
+        // Open file directly (not via syscall pointer address)
+        let fd = handler.open_file("/test.txt", 0);
+        assert!(fd > 0);
+
+        // Read syscall
+        let bytes_read = handler.handle_syscall(0, &[fd as u64, 0x2000, 5]).unwrap();
+        assert_eq!(bytes_read, 5);
+
+        // Seek back to beginning
+        handler.handle_syscall(8, &[fd as u64, 0, 0]).unwrap();
+
+        // Read all
+        let all_read = handler.handle_syscall(0, &[fd as u64, 0x2000, 1024]).unwrap();
+        assert_eq!(all_read as usize, test_content.len());
+
+        // Close
+        let result = handler.handle_syscall(3, &[fd as u64]).unwrap();
+        assert_eq!(result, 0);
     }
 }

@@ -1849,6 +1849,7 @@ dependencies = [
 name = "lucastra-kernel"
 version = "0.1.0"
 dependencies = [
+ "lucastra-compat",
  "tracing",
 ]
 

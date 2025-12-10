@@ -44,6 +44,13 @@ pub enum Tool {
         program: String,
         method: InstallMethod,
     },
+
+    /// Access host filesystem with validation and auditing
+    HostFileAccess {
+        operation: file_access::FileOperation,
+        path: String,
+        dest_path: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

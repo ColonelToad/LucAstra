@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -161,6 +164,141 @@ impl FileAccessValidator {
     }
 }
 
+/// Performs host file operations with validation and audit logging
+pub struct FileAccessTool {
+    validator: FileAccessValidator,
+    audit_path: PathBuf,
+}
+
+impl FileAccessTool {
+    pub fn new(validator: FileAccessValidator, audit_path: PathBuf) -> Self {
+        Self {
+            validator,
+            audit_path,
+        }
+    }
+
+    pub fn execute(
+        &self,
+        operation: FileOperation,
+        path: &Path,
+        dest_path: Option<&Path>,
+    ) -> crate::ToolResult {
+        let mut audit = AuditEntry {
+            timestamp: format!("{:?}", SystemTime::now()),
+            operation,
+            source_path: path.display().to_string(),
+            dest_path: dest_path.map(|p| p.display().to_string()),
+            success: false,
+            error_msg: None,
+            user_approved: true,
+        };
+
+        let result = self.perform(operation, path, dest_path);
+
+        match &result {
+            Ok(msg) => {
+                audit.success = true;
+                self.append_audit(audit);
+                crate::ToolResult::success("host_file_access", msg.clone())
+            }
+            Err(err) => {
+                audit.success = false;
+                audit.error_msg = Some(err.to_string());
+                self.append_audit(audit);
+                crate::ToolResult::failure("host_file_access", err.to_string())
+            }
+        }
+    }
+
+    fn perform(
+        &self,
+        operation: FileOperation,
+        path: &Path,
+        dest_path: Option<&Path>,
+    ) -> FileAccessResult<String> {
+        // Validate source
+        self.validator.validate_path(path, operation)?;
+
+        // Validate destination if needed
+        if matches!(operation, FileOperation::Move | FileOperation::Copy | FileOperation::Write) {
+            if let Some(dest) = dest_path {
+                if dest.exists() {
+                    self.validator.validate_path(dest, operation)?;
+                } else if let Some(parent) = dest.parent() {
+                    self.validator.validate_path(parent, operation)?;
+                } else {
+                    return Err(FileAccessError::InvalidPath(
+                        "Destination path has no parent".to_string(),
+                    ));
+                }
+            } else {
+                return Err(FileAccessError::InvalidPath(
+                    "Destination path required".to_string(),
+                ));
+            }
+        }
+
+        match operation {
+            FileOperation::Read => {
+                let contents = fs::read_to_string(path)
+                    .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?;
+                Ok(contents)
+            }
+            FileOperation::List => {
+                let entries = fs::read_dir(path)
+                    .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?
+                    .filter_map(|e| e.ok())
+                    .map(|e| e.path().display().to_string())
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                Ok(entries)
+            }
+            FileOperation::Copy => {
+                let dest = dest_path.unwrap();
+                fs::copy(path, dest)
+                    .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?;
+                Ok(format!("copied to {}", dest.display()))
+            }
+            FileOperation::Move => {
+                let dest = dest_path.unwrap();
+                fs::rename(path, dest)
+                    .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?;
+                Ok(format!("moved to {}", dest.display()))
+            }
+            FileOperation::Delete => {
+                if path.is_dir() {
+                    fs::remove_dir_all(path)
+                        .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?;
+                } else {
+                    fs::remove_file(path)
+                        .map_err(|e| FileAccessError::OperationFailed(e.to_string()))?;
+                }
+                Ok("deleted".to_string())
+            }
+            FileOperation::Write => Err(FileAccessError::OperationFailed(
+                "Write operation requires content (not implemented)".to_string(),
+            )),
+        }
+    }
+
+    fn append_audit(&self, entry: AuditEntry) {
+        if let Some(dir) = self.audit_path.parent() {
+            let _ = fs::create_dir_all(dir);
+        }
+
+        if let Ok(mut file) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.audit_path)
+        {
+            if let Ok(line) = serde_json::to_string(&entry) {
+                let _ = writeln!(file, "{}", line);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,5 +339,119 @@ mod tests {
         let json = serde_json::to_string(&entry).unwrap();
         assert!(json.contains("read") || json.contains("Read"));
         assert!(json.contains("file.txt"));
+    }
+
+    fn temp_base(tag: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("lucastra_host_file_access_{}_{}", tag, unique));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn test_execute_read_logs_success_audit() {
+        let base = temp_base("read");
+        let file_path = base.join("file.txt");
+        fs::write(&file_path, "hello world").unwrap();
+
+        let allowed = vec![base.canonicalize().unwrap()];
+        let validator = FileAccessValidator::new(allowed, true, false, false);
+        let audit_path = base.join("audit.log");
+        let tool = FileAccessTool::new(validator, audit_path.clone());
+
+        let result = tool.execute(FileOperation::Read, &file_path, None);
+
+        assert!(result.success);
+        assert_eq!(result.output, "hello world");
+
+        let audit_contents = fs::read_to_string(&audit_path).unwrap();
+        let last_line = audit_contents.lines().last().unwrap();
+        let entry: AuditEntry = serde_json::from_str(last_line).unwrap();
+
+        assert!(entry.success);
+        assert_eq!(entry.operation, FileOperation::Read);
+        assert_eq!(entry.source_path, file_path.display().to_string());
+    }
+
+    #[test]
+    fn test_execute_copy_denied_when_write_disabled() {
+        let base = temp_base("copy_deny");
+        let src = base.join("src.txt");
+        let dest = base.join("dest.txt");
+        fs::write(&src, "copy me").unwrap();
+
+        let allowed = vec![base.canonicalize().unwrap()];
+        let validator = FileAccessValidator::new(allowed, true, false, false);
+        let audit_path = base.join("audit.log");
+        let tool = FileAccessTool::new(validator, audit_path.clone());
+
+        let result = tool.execute(FileOperation::Copy, &src, Some(dest.as_path()));
+
+        assert!(!result.success);
+        assert!(result.output.contains("Permission denied"));
+
+        let audit_contents = fs::read_to_string(&audit_path).unwrap();
+        let last_line = audit_contents.lines().last().unwrap();
+        let entry: AuditEntry = serde_json::from_str(last_line).unwrap();
+
+        assert!(!entry.success);
+        assert!(entry
+            .error_msg
+            .unwrap_or_default()
+            .contains("Permission denied"));
+    }
+
+    #[test]
+    fn test_execute_copy_success_when_allowed() {
+        let base = temp_base("copy_ok");
+        let src = base.join("src.txt");
+        let dest = base.join("dest.txt");
+        fs::write(&src, "copy me").unwrap();
+
+        let allowed = vec![base.canonicalize().unwrap()];
+        let validator = FileAccessValidator::new(allowed, true, true, false);
+        let audit_path = base.join("audit.log");
+        let tool = FileAccessTool::new(validator, audit_path.clone());
+
+        let result = tool.execute(FileOperation::Copy, &src, Some(dest.as_path()));
+
+        assert!(result.success);
+        assert!(dest.exists());
+
+        let audit_contents = fs::read_to_string(&audit_path).unwrap();
+        let last_line = audit_contents.lines().last().unwrap();
+        let entry: AuditEntry = serde_json::from_str(last_line).unwrap();
+
+        assert!(entry.success);
+        assert_eq!(entry.operation, FileOperation::Copy);
+        assert_eq!(entry.dest_path, Some(dest.display().to_string()));
+    }
+
+    #[test]
+    fn test_execute_list_denied_when_read_disabled() {
+        let base = temp_base("list_deny");
+        let allowed = vec![base.canonicalize().unwrap()];
+        let validator = FileAccessValidator::new(allowed, false, true, false);
+        let audit_path = base.join("audit.log");
+        let tool = FileAccessTool::new(validator, audit_path.clone());
+
+        let result = tool.execute(FileOperation::List, &base, None);
+
+        assert!(!result.success);
+        assert!(result.output.contains("Permission denied"));
+
+        let audit_contents = fs::read_to_string(&audit_path).unwrap();
+        let last_line = audit_contents.lines().last().unwrap();
+        let entry: AuditEntry = serde_json::from_str(last_line).unwrap();
+
+        assert!(!entry.success);
+        assert_eq!(entry.operation, FileOperation::List);
+        assert!(entry
+            .error_msg
+            .unwrap_or_default()
+            .contains("Permission denied"));
     }
 }

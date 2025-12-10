@@ -319,6 +319,22 @@ fn default_allowed_dirs() -> Vec<String> {
     }
 }
 
+fn expand_allowed_dir(path: &str) -> PathBuf {
+    if path == "~" {
+        if let Some(home) = dirs::home_dir() {
+            return home;
+        }
+    }
+
+    if let Some(stripped) = path.strip_prefix("~/") {
+        if let Some(home) = dirs::home_dir() {
+            return home.join(stripped);
+        }
+    }
+
+    PathBuf::from(path)
+}
+
 fn default_true() -> bool {
     true
 }
@@ -393,6 +409,16 @@ impl Default for SecurityConfig {
             auto_sync_documents: false,
             allowed_host_dirs: default_allowed_dirs(),
         }
+    }
+}
+
+impl SecurityConfig {
+    /// Resolve allowed host directories, expanding ~ to the home directory
+    pub fn resolved_allowed_dirs(&self) -> Vec<PathBuf> {
+        self.allowed_host_dirs
+            .iter()
+            .map(|d| expand_allowed_dir(d))
+            .collect()
     }
 }
 
@@ -585,5 +611,18 @@ mod tests {
         std::fs::remove_dir_all(temp.path().join("logs")).ok();
         std::fs::remove_dir_all(temp.path().join("data")).ok();
         std::fs::remove_dir_all(temp.path().join("models")).ok();
+    }
+
+    #[test]
+    fn test_resolved_allowed_dirs_expands_tilde() {
+        let cfg = SecurityConfig {
+            allowed_host_dirs: vec!["~/Documents".to_string()],
+            ..SecurityConfig::default()
+        };
+
+        let dirs = cfg.resolved_allowed_dirs();
+        let expected_prefix = dirs::home_dir().unwrap();
+
+        assert!(dirs[0].starts_with(expected_prefix));
     }
 }

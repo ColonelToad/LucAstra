@@ -7,7 +7,18 @@ use lucastra_input::InputManager;
 use lucastra_llm::LLMService;
 use lucastra_search::SearchService;
 use lucastra_services::ServiceRegistry;
-use lucastra_tools::{Tool, ToolResult, search::SearchTool, read::ReadTool, install::InstallTool};
+use lucastra_tools::{
+    file_access::{FileAccessTool, FileAccessValidator},
+    install::InstallTool,
+    read::ReadTool,
+    search::SearchTool,
+    Tool,
+    ToolResult,
+};
+use std::path::Path;
+
+#[cfg(feature = "relibc")]
+use lucastra_kernel::SyscallHandler;
 
 /// System state holding all services.
 pub struct SystemState {
@@ -18,6 +29,8 @@ pub struct SystemState {
     pub input_manager: InputManager,
     pub search_service: SearchService,
     pub llm_service: LLMService,
+    #[cfg(feature = "relibc")]
+    pub syscall_handler: Option<SyscallHandler>,
 }
 
 impl SystemState {
@@ -69,6 +82,8 @@ impl SystemState {
             input_manager,
             search_service,
             llm_service,
+            #[cfg(feature = "relibc")]
+            syscall_handler: Some(SyscallHandler::new()),
         })
     }
 
@@ -175,6 +190,35 @@ impl SystemState {
                 install_tool
                     .execute(&program, &method)
                     .unwrap_or_else(|e| ToolResult::failure("install", e.to_string()))
+            }
+            Tool::HostFileAccess {
+                operation,
+                path,
+                dest_path,
+            } => {
+                let validator = FileAccessValidator::new(
+                    self.config.security.resolved_allowed_dirs(),
+                    self.config.security.allow_host_read,
+                    self.config.security.allow_host_write,
+                    self.config.security.allow_usb,
+                );
+
+                let audit_path = match lucastra_config::get_logs_dir() {
+                    Ok(dir) => dir.join("file_access_audit.log"),
+                    Err(e) => {
+                        return ToolResult::failure(
+                            "host_file_access",
+                            format!("Unable to resolve audit log dir: {}", e),
+                        )
+                    }
+                };
+
+                let tool = FileAccessTool::new(validator, audit_path);
+                tool.execute(
+                    operation,
+                    Path::new(&path),
+                    dest_path.as_deref().map(Path::new),
+                )
             }
         }
     }
