@@ -4,6 +4,7 @@ use thiserror::Error;
 pub mod search;
 pub mod read;
 pub mod install;
+pub mod file_access;
 
 #[derive(Debug, Error)]
 pub enum ToolError {

@@ -170,6 +170,26 @@ pub struct SecurityConfig {
     /// Enable hardware authentication (Windows Hello, Touch ID)
     #[serde(default = "default_false")]
     pub enable_biometrics: bool,
+
+    /// Allow reading from host directories
+    #[serde(default = "default_true")]
+    pub allow_host_read: bool,
+
+    /// Allow writing to host directories
+    #[serde(default = "default_false")]
+    pub allow_host_write: bool,
+
+    /// Allow USB/removable media access
+    #[serde(default = "default_false")]
+    pub allow_usb: bool,
+
+    /// Auto-sync documents to host (if false, explicit copy only)
+    #[serde(default = "default_false")]
+    pub auto_sync_documents: bool,
+
+    /// Allowed host directories (expand ~ and env vars)
+    #[serde(default = "default_allowed_dirs")]
+    pub allowed_host_dirs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -280,6 +300,25 @@ fn default_log_level() -> String {
     "info".to_string()
 }
 
+fn default_allowed_dirs() -> Vec<String> {
+    #[cfg(target_os = "windows")]
+    {
+        vec![
+            "~/Documents".to_string(),
+            "~/Downloads".to_string(),
+            "~/Desktop".to_string(),
+        ]
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        vec![
+            "~/Documents".to_string(),
+            "~/Downloads".to_string(),
+            "~/Desktop".to_string(),
+        ]
+    }
+}
+
 fn default_true() -> bool {
     true
 }
@@ -348,6 +387,11 @@ impl Default for SecurityConfig {
             require_auth: false,
             oauth_providers: vec![],
             enable_biometrics: false,
+            allow_host_read: true,
+            allow_host_write: false,
+            allow_usb: false,
+            auto_sync_documents: false,
+            allowed_host_dirs: default_allowed_dirs(),
         }
     }
 }

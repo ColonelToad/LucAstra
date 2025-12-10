@@ -1887,6 +1887,7 @@ dependencies = [
 name = "lucastra-tools"
 version = "0.1.0"
 dependencies = [
+ "dirs",
  "lucastra-core",
  "lucastra-fs",
  "lucastra-search",
