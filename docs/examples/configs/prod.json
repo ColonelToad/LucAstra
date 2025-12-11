@@ -1,0 +1,25 @@
+{
+  "observability": {
+    "level": "info",
+    "file_logging": true,
+    "log_dir": "/var/log/lucastra",
+    "max_log_size_mb": 100,
+    "log_files_keep": 30,
+    "console_output": false,
+    "json_format": true
+  },
+  "metrics": {
+    "enabled": false,
+    "export_to_file": false,
+    "export_dir": "/var/lib/lucastra/metrics",
+    "export_interval_secs": 3600
+  },
+  "security": {
+    "allowed_host_dirs": [
+      "~/Documents"
+    ],
+    "allow_host_read": true,
+    "allow_host_write": false,
+    "allow_usb": false
+  }
+}

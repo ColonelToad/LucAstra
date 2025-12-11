@@ -1,0 +1,209 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Run rustfmt
+        run: cargo fmt -- --check
+      
+      - name: Run clippy
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+
+  build:
+    name: Build [${{ matrix.os }}]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Build
+        run: cargo build --locked --release --verbose
+      
+      - name: Generate artifacts
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            mkdir -p dist
+            cp target/release/app.exe dist/ || echo "Binary not found"
+          else
+            mkdir -p dist
+            cp target/release/app dist/ || echo "Binary not found"
+          fi
+        shell: bash
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: lucastra-${{ matrix.os }}
+          path: dist/
+          retention-days: 5
+
+  test:
+    name: Test [${{ matrix.os }}]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Run unit tests
+        run: cargo test --locked --lib --verbose
+      
+      - name: Run integration tests
+        run: cargo test --locked --test '*' --verbose
+      
+      - name: Generate test report
+        if: success() || failure()
+        run: cargo test --locked --lib --verbose -- --test-threads=1 --nocapture 2>&1 | tee test-results.txt
+      
+      - name: Upload test results
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.os }}
+          path: test-results.txt
+          retention-days: 5
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+      
+      - name: Run security audit
+        run: cargo audit
+      
+      - name: Check dependencies
+        run: cargo tree --depth=1
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+      
+      - name: Generate coverage
+        run: cargo tarpaulin --out Xml --exclude-files tests/ --timeout 300
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./cobertura.xml
+          fail_ci_if_error: false
+
+  release:
+    name: Create Release
+    needs: [lint, build, test, security-audit]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download artifacts (Ubuntu)
+        uses: actions/download-artifact@v3
+        with:
+          name: lucastra-ubuntu-latest
+          path: artifacts/
+      
+      - name: Download artifacts (Windows)
+        uses: actions/download-artifact@v3
+        with:
+          name: lucastra-windows-latest
+          path: artifacts/
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

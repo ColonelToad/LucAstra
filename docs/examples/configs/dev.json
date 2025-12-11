@@ -1,0 +1,27 @@
+{
+  "observability": {
+    "level": "debug",
+    "file_logging": true,
+    "log_dir": "./logs",
+    "max_log_size_mb": 50,
+    "log_files_keep": 10,
+    "console_output": true,
+    "json_format": false
+  },
+  "metrics": {
+    "enabled": true,
+    "export_to_file": true,
+    "export_dir": "./metrics",
+    "export_interval_secs": 30
+  },
+  "security": {
+    "allowed_host_dirs": [
+      "~/Documents",
+      "~/Downloads",
+      "~/Projects"
+    ],
+    "allow_host_read": true,
+    "allow_host_write": true,
+    "allow_usb": false
+  }
+}

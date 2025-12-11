@@ -1,8 +1,28 @@
 use lucastra_app::SystemState;
+use lucastra_config::Config;
+use serde_json::to_string_pretty;
+use std::env;
 use std::fs;
+use std::path::PathBuf;
+
+fn ensure_config_home_with_default() -> PathBuf {
+    // Create an isolated temp config directory with a default config.json
+    let temp_dir = env::temp_dir().join("lucastra_system_state_test");
+    let _ = fs::remove_dir_all(&temp_dir);
+    fs::create_dir_all(&temp_dir).expect("Failed to create temp config dir");
+
+    let cfg = Config::default();
+    let cfg_path = temp_dir.join("config.json");
+    fs::write(&cfg_path, to_string_pretty(&cfg).expect("serialize config"))
+        .expect("write config.json");
+
+    env::set_var("LUCASTRA_CONFIG_HOME", &temp_dir);
+    temp_dir
+}
 
 #[test]
 fn test_system_state_initialization() {
+    ensure_config_home_with_default();
     // Test that SystemState can be created
     let result = SystemState::new();
     assert!(result.is_ok(), "SystemState initialization failed");
@@ -15,7 +35,6 @@ fn test_system_state_initialization() {
 #[test]
 fn test_config_persistence_roundtrip() {
     use lucastra_config::Config;
-    use std::env;
 
     // Use a temporary config directory
     let temp_dir = std::env::temp_dir().join("lucastra_config_test_rt");
@@ -37,6 +56,7 @@ fn test_config_persistence_roundtrip() {
 
 #[test]
 fn test_metrics_tracking_integration() {
+    ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
 
     // Record some metrics
@@ -53,6 +73,7 @@ fn test_metrics_tracking_integration() {
 
 #[test]
 fn test_system_state_config_access() {
+    ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
     let config = state.get_config();
 
@@ -65,6 +86,7 @@ fn test_system_state_config_access() {
 
 #[test]
 fn test_filesystem_operations() {
+    ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
 
     // Verify that filesystem operations are accessible

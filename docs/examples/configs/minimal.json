@@ -1,0 +1,23 @@
+{
+  "observability": {
+    "level": "warn",
+    "file_logging": false,
+    "log_dir": "./logs",
+    "max_log_size_mb": 10,
+    "log_files_keep": 3,
+    "console_output": true,
+    "json_format": false
+  },
+  "metrics": {
+    "enabled": false,
+    "export_to_file": false,
+    "export_dir": "./metrics",
+    "export_interval_secs": 300
+  },
+  "security": {
+    "allowed_host_dirs": [],
+    "allow_host_read": false,
+    "allow_host_write": false,
+    "allow_usb": false
+  }
+}
