@@ -1,0 +1,19 @@
+[package]
+name = "lucastra-cli"
+version = "1.1.0"
+edition = "2021"
+authors = ["LucAstra Contributors"]
+description = "Command-line interface for LucAstra AI-powered OS"
+
+[[bin]]
+name = "lucastra-cli"
+path = "src/main.rs"
+
+[dependencies]
+lucastra-llm = { path = "../llm" }
+lucastra-search = { path = "../search" }
+clap = { version = "4.5", features = ["derive"] }
+tokio = { version = "1.43", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
