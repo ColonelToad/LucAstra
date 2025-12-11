@@ -7,4 +7,5 @@ license.workspace = true
 [dependencies]
 lucastra-core = { path = "../core" }
 tracing = { workspace = true }
+thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

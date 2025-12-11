@@ -8,12 +8,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod llamafile;
-
-#[cfg(feature = "openai")]
 pub mod openai;
-
-#[cfg(feature = "anthropic")]
-pub mod anthropic;
 
 #[derive(Debug, Error)]
 pub enum ProviderError {
@@ -156,25 +151,15 @@ pub async fn create_provider(config: ProviderConfig) -> ProviderResult<Box<dyn L
             let endpoint = config.endpoint.unwrap_or_else(|| "http://localhost:8000".to_string());
             Ok(Box::new(llamafile::LlamafileProvider::new(endpoint)))
         }
-        #[cfg(feature = "openai")]
         "openai" => {
             let api_key = config.api_key.ok_or_else(|| {
                 ProviderError::AuthError("OpenAI requires api_key in config".to_string())
             })?;
-            Ok(Box::new(openai::OpenAIProvider::new(
-                api_key,
-                config.model,
-            )?))
-        }
-        #[cfg(feature = "anthropic")]
-        "anthropic" => {
-            let api_key = config.api_key.ok_or_else(|| {
-                ProviderError::AuthError("Anthropic requires api_key in config".to_string())
-            })?;
-            Ok(Box::new(anthropic::AnthropicProvider::new(
-                api_key,
-                config.model,
-            )?))
+            let mut provider = openai::OpenAIProvider::new(api_key, config.model)?;
+            if let Some(endpoint) = config.endpoint {
+                provider = provider.with_base_url(endpoint);
+            }
+            Ok(Box::new(provider))
         }
         _ => Err(ProviderError::UnsupportedError(format!(
             "Unknown provider: {}",

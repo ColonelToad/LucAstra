@@ -4,10 +4,12 @@
 //! with async/await support, streaming responses, and embeddings generation.
 
 pub mod client;
+pub mod conversation;
 pub mod inference;
 pub mod providers;
 
 pub use client::LlamafileClient;
+pub use conversation::{Conversation, ConversationError, Message, Role};
 pub use inference::{InferenceRequest, InferenceResponse, LLMService};
 pub use providers::{
     CompletionRequest, CompletionResponse, EmbeddingRequest, EmbeddingResponse, LLMProvider,

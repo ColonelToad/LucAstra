@@ -1,10 +1,12 @@
-//! BM25-based full-text search for filesystem indexing.
+//! Full-text and vector search for filesystem indexing.
 
 pub mod index;
 pub mod tokenizer;
+pub mod vector;
 
 pub use index::BM25Index;
 pub use tokenizer::Tokenizer;
+pub use vector::{VectorIndex, VectorSearchResult, VectorError};
 
 use lucastra_core::{command::SearchResult, Result};
 use std::collections::HashMap;
