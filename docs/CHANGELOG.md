@@ -5,6 +5,81 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-10
+
+### Added
+
+#### Async LLM Provider Abstraction
+- **LLMProvider trait** with async/await interface
+  - Unified interface for multiple LLM backends
+  - Methods: `complete()`, `embed()`, `health_check()`
+  - Support for streaming (future), embeddings, custom endpoints
+- **OpenAI Provider** (`llm/src/providers/openai.rs`)
+  - GPT-4o-mini completions via OpenAI API
+  - Text embeddings (text-embedding-3-small model, 1536 dimensions)
+  - Error handling for auth, rate limits, invalid responses
+  - Custom base URL support for Azure OpenAI or proxies
+  - 3 unit tests
+- **Llamafile Provider** (refactored to async)
+  - Native async implementation replacing blocking Runtime::block_on
+  - Health check endpoint polling
+  - Completion with configurable temperature, max_tokens
+  - 2 unit tests
+- **Provider Factory** (`create_provider()` function)
+  - Runtime provider selection from config
+  - Environment variable support for API keys
+
+#### Vector Search & Semantic Retrieval
+- **VectorIndex** (`search/src/vector.rs`)
+  - Cosine similarity-based semantic search
+  - Document embedding storage with path mapping
+  - Dimension validation and error handling
+  - O(n) search (naive implementation, suitable for <10k docs)
+  - 8 unit tests (similarity, indexing, search, edge cases)
+- **VectorSearchResult** with score and snippet
+- TODO: HNSW integration for sub-linear search (planned for large corpora)
+
+#### Conversation Management
+- **Conversation** (`llm/src/conversation.rs`)
+  - Multi-turn conversation tracking with unique IDs (UUID)
+  - Context window management (max messages and token budget)
+  - Automatic trimming to preserve recent messages
+  - System prompt preservation across trims
+  - Role-based messages (System, User, Assistant)
+  - Prompt formatting for generic LLM APIs
+  - 6 unit tests (creation, trimming, clear, formatting)
+
+### Changed
+- **Version bump**: 1.0.0 → 1.1.0
+- **llm crate dependencies**:
+  - Added `async-trait` for trait async methods
+  - Added `uuid` for conversation IDs
+- **search crate dependencies**:
+  - Added `thiserror` for vector error types
+- **Module exports**:
+  - Exposed `Conversation`, `Message`, `Role` from `llm`
+  - Exposed `VectorIndex`, `VectorSearchResult` from `search`
+
+### Documentation
+- **V1_1_ROADMAP.md**: Comprehensive 4-week implementation plan
+  - Phase A: Async refactor (complete)
+  - Phase B: Provider abstraction (complete)
+  - Phase C: Vector embeddings (complete)
+  - Phase D: Vector search (complete)
+  - Phase E: Conversation management (complete)
+  - Phase F: Testing & docs (in progress)
+- **docs/examples/v1_1_async_llm.rs**: Complete example demonstrating:
+  - OpenAI provider usage (completions + embeddings)
+  - Semantic search with vector similarity
+  - Multi-turn conversation management
+  - Llamafile local inference
+
+### Tests
+- **81 total tests** (70 → 81, +11 new)
+  - 64 unit tests (53 → 64, +11)
+  - 17 integration tests (15 → 17, +2)
+- All tests passing ✓
+
 ## [1.0.0] - 2025-12-10
 
 ### Added
