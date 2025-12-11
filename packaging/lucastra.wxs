@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="LucAstra" 
+           Language="1033" 
+           Version="1.0.0" 
+           Manufacturer="LucAstra Team" 
+           UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+    
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Description="LucAstra - Augmented OS with embedded LLM"
+             Comments="LucAstra v1.0.0" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" Title="LucAstra" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="LucAstra">
+          <Directory Id="ConfigDir" Name="config" />
+          <Directory Id="LogsDir" Name="logs" />
+          <Directory Id="AuditDir" Name="audit" />
+          <Directory Id="MetricsDir" Name="metrics" />
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="LucAstra"/>
+      </Directory>
+    </Directory>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="B1C2D3E4-F5A6-7890-BCDE-F12345678901">
+        <File Id="LucAstraExe" 
+              Source="..\target\release\app.exe" 
+              KeyPath="yes" 
+              Name="lucastra.exe" />
+        
+        <Environment Id="LucAstraConfigHome"
+                     Name="LUCASTRA_CONFIG_HOME"
+                     Value="[INSTALLFOLDER]config"
+                     Permanent="no"
+                     Part="all"
+                     Action="set"
+                     System="yes" />
+      </Component>
+      
+      <Component Id="DefaultConfig" Guid="C2D3E4F5-A6B7-8901-CDEF-123456789012" Directory="ConfigDir">
+        <File Id="ConfigJson" 
+              Source="..\docs\examples\configs\prod.json" 
+              Name="config.json" />
+      </Component>
+      
+      <Component Id="ReadmeDoc" Guid="D3E4F5A6-B7C8-9012-DEF1-234567890123">
+        <File Id="ReadmeMd" 
+              Source="..\README.md" 
+              Name="README.md" />
+      </Component>
+    </ComponentGroup>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="E4F5A6B7-C8D9-0123-EF12-345678901234">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="LucAstra"
+                  Description="LucAstra - Augmented OS"
+                  Target="[INSTALLFOLDER]lucastra.exe"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" 
+                       Key="Software\LucAstra" 
+                       Name="installed" 
+                       Type="integer" 
+                       Value="1" 
+                       KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="ExitDialog"
+               Control="Finish" 
+               Event="DoAction" 
+               Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+    </UI>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="WixShellExecTarget" Value="[#LucAstraExe]" />
+    
+    <CustomAction Id="LaunchApplication"
+                  BinaryKey="WixCA"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes" />
+
+    <Icon Id="LucAstra.ico" SourceFile="..\assets\icon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="LucAstra.ico" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/lucastra/lucastra" />
+    
+  </Product>
+</Wix>
