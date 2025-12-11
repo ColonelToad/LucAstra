@@ -180,12 +180,12 @@ cargo clippy --workspace
 
 ## 📚 Documentation
 
-- **[OS_ARCHITECTURE.md](OS_ARCHITECTURE.md)** - System design and architecture
-- **[MVP_SUMMARY.md](MVP_SUMMARY.md)** - MVP completion checklist
-- **[GUI_TOOLS_GUIDE.md](GUI_TOOLS_GUIDE.md)** - GUI usage and tool API reference
+- **[docs/OS_ARCHITECTURE.md](docs/OS_ARCHITECTURE.md)** - System design and architecture
+- **[docs/MVP_SUMMARY.md](docs/MVP_SUMMARY.md)** - MVP completion checklist
+- **[docs/GUI_TOOLS_GUIDE.md](docs/GUI_TOOLS_GUIDE.md)** - GUI usage and tool API reference
 **Release Documentation**:
-- **[CHANGELOG.md](CHANGELOG.md)** - Complete feature history (v0.1.0 → v1.0.0)
-- **[RELEASE_NOTES.md](RELEASE_NOTES.md)** - Deployment guide with configuration setup
+- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - Complete feature history (v0.1.0 → v1.0.0)
+- **[docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)** - Deployment guide with configuration setup
 - **[docs/CONFIG_SCHEMA.md](docs/CONFIG_SCHEMA.md)** - Configuration reference and best practices
 - **[docs/PHASE6_SUMMARY.md](docs/PHASE6_SUMMARY.md)** - Release engineering completion summary
 
