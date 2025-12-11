@@ -7,4 +7,6 @@ target/
 node_modules/
 model/
 notes/
-docs/
+logs/
+audit/
+metrics/
