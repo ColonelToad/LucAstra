@@ -2,55 +2,28 @@
 
 **An augmented operating system built in Rust with embedded LLM and agentic capabilities.**
 
-LucAstra is a prototype operating system that deeply integrates a local 7B parameter language model for natural language interaction, intelligent search (BM25), and autonomous task execution via tools. Everything runs locally for privacy and control.
-## 📢 Version 1.0.0 - Production Release
+LucAstra is a prototype operating system that deeply integrates language models for natural language interaction, semantic search, and autonomous task execution via tools. Supports local inference (llamafile) and cloud APIs (OpenAI) with multi-turn conversations.
 
-**LucAstra v1.0.0 is now production-ready!** 
+## 📢 Version 1.1.0 - Async LLM + Vector Search
 
-All 6 development phases completed with:
+**LucAstra v1.1.0 adds async LLM providers with vector-based semantic search!**
 
-### Release Highlights by Phase
+### New in v1.1.0
+- **🔄 Async LLM Provider Abstraction**: Unified interface for OpenAI, llamafile, and future providers
+- **🧠 OpenAI Integration**: GPT-4o-mini completions + text-embedding-3-small (1536-dim vectors)
+- **🔍 Vector Similarity Search**: Cosine-based semantic search replacing keyword-only BM25
+- **💬 Conversation Management**: Multi-turn context with automatic windowing
+- **📊 81 Tests Passing** (+11 new tests for providers, vectors, conversations)
+
+### Previous Release (v1.0.0)
 - **Phase 1**: HostFileAccess, audit logging, SecurityConfig (read/write/USB)
 - **Phase 2**: relibc syscall handler, ELF loader, LibreOffice launcher
 - **Phase 3**: Calculator + File Manager apps
 - **Phase 4**: Lightweight browser (HTTP, HTML parsing, tabs, bookmarks)
-- **Phase 5**: Observability (structured logging, metrics, 15 integration tests)
-- **Phase 6**: Release engineering (semver 1.0.0, samples, CI/CD, schema docs)
+- **Phase 5**: Observability (structured logging, metrics, integration tests)
+- **Phase 6**: Release engineering (semver, CI/CD, Docker, packaging)
 
-## ✨ Current Features (MVP Complete!)
-
-### Core OS
-- ✅ Kernel boot and lifecycle management
-- ✅ Hardware Abstraction Layer (HAL) with pluggable device drivers
-- ✅ Device manager (USB, input devices)
-- ✅ Filesystem manager with mount/unmount support
-- ✅ Input event management
-- ✅ Tracing and observability throughout
-
-### AI & Search
-- ✅ BM25-based document search service
-- ✅ LLM integration via llamafile HTTP API
-- ✅ RAG (Retrieval-Augmented Generation) pipeline
-- ✅ Graceful fallback to mock responses when LLM offline
-
-### Compatibility Layer
-- ✅ Relibc syscall handler (20+ syscalls)
-- ✅ File descriptor table management
-- ✅ FAT32 boot sector parser
-- ✅ ELF header parser and validator
-
-### GUI & Tools
-- ✅ Desktop-style GUI with chat interface (iced)
-- ✅ Taskbar with file manager button
-```
-
-### Configuration
-Set up LucAstra with environment variables:
-```bash
-# Point to a sample config (development)
-export LUCASTRA_CONFIG_HOME=./docs/examples/configs/dev.json
-
-## ✨ Current Features (MVP Complete!)
+## ✨ Current Features
 
 ### Core OS
 - ✅ Kernel boot and lifecycle management
@@ -60,10 +33,13 @@ export LUCASTRA_CONFIG_HOME=./docs/examples/configs/dev.json
 - ✅ Input event management
 - ✅ Tracing and observability throughout
 
-### AI & Search
-- ✅ BM25-based document search service
-- ✅ LLM integration via llamafile HTTP API
-- ✅ RAG (Retrieval-Augmented Generation) pipeline
+### AI & Search (v1.1.0)
+- ✅ **Async LLM Providers**: OpenAI (GPT-4o-mini), llamafile (local 7B models)
+- ✅ **Vector Embeddings**: OpenAI text-embedding-3-small (1536 dimensions)
+- ✅ **Semantic Search**: Cosine similarity-based vector index
+- ✅ **BM25 Keyword Search**: Full-text search with TF-IDF scoring
+- ✅ **Conversation Management**: Multi-turn context with automatic windowing
+- ✅ **RAG Pipeline**: Retrieval-Augmented Generation with context injection
 - ✅ Graceful fallback to mock responses when LLM offline
 
 ### Compatibility Layer
@@ -81,14 +57,6 @@ export LUCASTRA_CONFIG_HOME=./docs/examples/configs/dev.json
 - ✅ Read tool (file contents)
 - ✅ Install tool (execute commands, install programs)
 - ✅ Tool execution framework for agentic tasks
-
-### Release Highlights by Phase
-- **Phase 1**: HostFileAccess, audit logging, SecurityConfig (read/write/USB)
-- **Phase 2**: relibc syscall handler, ELF loader, LibreOffice launcher
-- **Phase 3**: Calculator + File Manager apps
-- **Phase 4**: Lightweight browser (HTTP, HTML parsing, tabs, bookmarks)
-- **Phase 5**: Observability (structured logging, metrics, 15 integration tests)
-- **Phase 6**: Release engineering (semver 1.0.0, samples, CI/CD, schema docs)
 
 
 ## 🚀 Quick Start (developers)
@@ -111,19 +79,46 @@ cargo run --package lucastra-app --example tool_demo
 ```
 
 ### Configuration
-Set up LucAstra with environment variables:
-```bash
-# Point to a sample config (development)
-export LUCASTRA_CONFIG_HOME=./docs/examples/configs/dev.json
 
-# Or create your custom config
-mkdir -p ~/.lucastra
-cp docs/examples/configs/prod.json ~/.lucastra/config.json
-export LUCASTRA_CONFIG_HOME=~/.lucastra
+#### LLM Provider Setup (v1.1.0)
+
+**Option 1: OpenAI (Cloud)**
+```bash
+# Set API key
+export OPENAI_API_KEY=sk-...
+
+# Create config with OpenAI provider
+cat > ~/.lucastra/config.json <<EOF
+{
+  "llm": {
+    "provider": "openai",
+    "api_key": "\${OPENAI_API_KEY}",
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "max_tokens": 4096
+  },
+  "embeddings": {
+    "provider": "openai",
+    "model": "text-embedding-3-small"
+  }
+}
+EOF
 ```
 
-Supported environment variables:
+**Option 2: Llamafile (Local)**
+```bash
+# Start llamafile server
+llamafile -m mistral-7b-instruct.Q4_K_M.gguf --server --port 8000
+
+# Use llamafile config
+export LUCASTRA_CONFIG_HOME=./docs/examples/configs/dev.json
+```
+
+See [docs/examples/v1_1_async_llm.rs](docs/examples/v1_1_async_llm.rs) for complete examples.
+
+#### Environment Variables
 - **LUCASTRA_CONFIG_HOME**: Root directory for config.json (default: `~/.lucastra`)
+- **OPENAI_API_KEY**: OpenAI API key (for OpenAI provider)
 - **RUST_LOG**: Log level override (optional, respects config setting)
 
 Logs live in `./logs` (file + console). Audit logs are JSON lines in `./audit/` when file operations occur.

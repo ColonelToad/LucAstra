@@ -1,0 +1,46 @@
+{
+  "llm": {
+    "provider": "llamafile",
+    "api_key": null,
+    "model": null,
+    "endpoint": "http://localhost:8000",
+    "temperature": 0.7,
+    "max_tokens": 2048,
+    "timeout_secs": 60
+  },
+  "embeddings": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "batch_size": 50,
+    "cache_dir": "~/.lucastra/embeddings"
+  },
+  "vector_search": {
+    "enabled": true,
+    "index_path": "~/.lucastra/vector.index",
+    "top_k": 3
+  },
+  "conversation": {
+    "max_context_tokens": 4000,
+    "persist": false,
+    "persist_path": null
+  },
+  "tracing": {
+    "level": "debug",
+    "log_to_file": true,
+    "log_dir": "./logs"
+  },
+  "metrics": {
+    "enabled": true,
+    "metrics_dir": "./metrics"
+  },
+  "security": {
+    "allow_host_read": true,
+    "allow_host_write": true,
+    "allow_usb": true,
+    "allowed_host_dirs": [
+      "~/Documents",
+      "~/Downloads",
+      "~/Projects"
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "llm": {
+    "provider": "openai",
+    "api_key": "${OPENAI_API_KEY}",
+    "model": "gpt-4o-mini",
+    "endpoint": null,
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "timeout_secs": 30
+  },
+  "embeddings": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "batch_size": 100,
+    "cache_dir": "~/.lucastra/embeddings"
+  },
+  "vector_search": {
+    "enabled": true,
+    "index_path": "~/.lucastra/vector.index",
+    "top_k": 5
+  },
+  "conversation": {
+    "max_context_tokens": 8000,
+    "persist": true,
+    "persist_path": "~/.lucastra/conversations"
+  },
+  "tracing": {
+    "level": "info",
+    "log_to_file": true,
+    "log_dir": "./logs"
+  },
+  "metrics": {
+    "enabled": true,
+    "metrics_dir": "./metrics"
+  },
+  "security": {
+    "allow_host_read": true,
+    "allow_host_write": false,
+    "allow_usb": false,
+    "allowed_host_dirs": [
+      "~/Documents",
+      "~/Downloads"
+    ]
+  }
+}

@@ -7,8 +7,13 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+pub mod anthropic;
 pub mod llamafile;
 pub mod openai;
+
+use crate::streaming::{StreamChunk, StreamResult};
+use futures::Stream;
+use std::pin::Pin;
 
 #[derive(Debug, Error)]
 pub enum ProviderError {
@@ -95,6 +100,17 @@ pub trait LLMProvider: Send + Sync {
     /// Generate a completion (non-streaming).
     async fn complete(&self, request: CompletionRequest) -> ProviderResult<CompletionResponse>;
 
+    /// Generate a streaming completion (if supported).
+    async fn complete_stream(
+        &self,
+        _request: CompletionRequest,
+    ) -> ProviderResult<Pin<Box<dyn Stream<Item = StreamResult<StreamChunk>> + Send>>> {
+        Err(ProviderError::UnsupportedError(format!(
+            "{} does not support streaming",
+            self.name()
+        )))
+    }
+
     /// Generate embeddings for the given texts.
     /// Returns error with UnsupportedError if provider doesn't support embeddings.
     async fn embed(&self, _request: EmbeddingRequest) -> ProviderResult<EmbeddingResponse> {
@@ -158,6 +174,19 @@ pub async fn create_provider(config: ProviderConfig) -> ProviderResult<Box<dyn L
             let mut provider = openai::OpenAIProvider::new(api_key, config.model)?;
             if let Some(endpoint) = config.endpoint {
                 provider = provider.with_base_url(endpoint);
+            }
+            Ok(Box::new(provider))
+        }
+        "anthropic" => {
+            let api_key = config.api_key.ok_or_else(|| {
+                ProviderError::AuthError("Anthropic requires api_key in config".to_string())
+            })?;
+            let mut provider = anthropic::AnthropicProvider::new(api_key);
+            if let Some(endpoint) = config.endpoint {
+                provider = provider.with_base_url(endpoint);
+            }
+            if let Some(model) = config.model {
+                provider = provider.with_model(model);
             }
             Ok(Box::new(provider))
         }

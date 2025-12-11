@@ -3,7 +3,8 @@ target/
 .git/
 .github/
 notes/
-docs/
+docs/*.md
+!docs/examples/
 *.md
 !README.md
 
