@@ -1,13 +1,18 @@
 //! LLM service for LucAstra.
 //!
-//! This module provides integration with a llamafile-based 7B model running as an HTTP server.
-//! The model is assumed to be running locally (default: http://localhost:8000).
+//! This module provides integration with various LLM providers (OpenAI, Anthropic, llamafile, etc.)
+//! with async/await support, streaming responses, and embeddings generation.
 
 pub mod client;
 pub mod inference;
+pub mod providers;
 
 pub use client::LlamafileClient;
 pub use inference::{InferenceRequest, InferenceResponse, LLMService};
+pub use providers::{
+    CompletionRequest, CompletionResponse, EmbeddingRequest, EmbeddingResponse, LLMProvider,
+    ProviderConfig, ProviderError, ProviderResult, StopReason,
+};
 
 use lucastra_core::Result;
 

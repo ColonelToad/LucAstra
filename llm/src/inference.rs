@@ -19,9 +19,9 @@ pub struct InferenceResponse {
     pub stop_reason: String,
 }
 
-/// LLM service that wraps the llamafile HTTP client.
+/// LLM service that wraps the provider interface.
 pub struct LLMService {
-    client: LlamafileClient,
+    client: LlamafileClient, // Legacy client for backward compatibility
     system_prompt: String,
 }
 
@@ -33,7 +33,7 @@ impl LLMService {
         }
     }
 
-    /// Check if the LLM server is online.
+    /// Check if the LLM server is online (blocking for backward compatibility).
     pub fn health_check(&self) -> Result<bool> {
         self.client
             .health_check()
