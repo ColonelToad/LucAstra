@@ -60,7 +60,7 @@ impl Calculator {
     fn parse_expression(&self, expr: &str) -> CalcResult<f64> {
         // Tokenize
         let tokens = self.tokenize(expr)?;
-        
+
         // Simple recursive descent parser
         let (result, _) = self.parse_additive(&tokens, 0)?;
         Ok(result)
@@ -155,7 +155,9 @@ impl Calculator {
     /// Parse unary operations and function calls
     fn parse_unary(&self, tokens: &[String], pos: usize) -> CalcResult<(f64, usize)> {
         if pos >= tokens.len() {
-            return Err(CalcError::ParseError("Unexpected end of expression".to_string()));
+            return Err(CalcError::ParseError(
+                "Unexpected end of expression".to_string(),
+            ));
         }
 
         match tokens[pos].as_str() {
@@ -171,7 +173,9 @@ impl Calculator {
     /// Parse primary terms: numbers, functions, and parenthesized expressions
     fn parse_primary(&self, tokens: &[String], pos: usize) -> CalcResult<(f64, usize)> {
         if pos >= tokens.len() {
-            return Err(CalcError::ParseError("Unexpected end of expression".to_string()));
+            return Err(CalcError::ParseError(
+                "Unexpected end of expression".to_string(),
+            ));
         }
 
         match tokens[pos].as_str() {
@@ -221,12 +225,10 @@ impl Calculator {
                 Ok((val.log10(), new_pos))
             }
             // Number
-            token => {
-                token
-                    .parse::<f64>()
-                    .map(|n| (n, pos + 1))
-                    .map_err(|_| CalcError::ParseError(format!("Invalid token: {}", token)))
-            }
+            token => token
+                .parse::<f64>()
+                .map(|n| (n, pos + 1))
+                .map_err(|_| CalcError::ParseError(format!("Invalid token: {}", token))),
         }
     }
 

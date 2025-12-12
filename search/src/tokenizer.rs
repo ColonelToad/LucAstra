@@ -16,8 +16,21 @@ impl Tokenizer {
     pub fn is_stopword(word: &str) -> bool {
         matches!(
             word,
-            "the" | "a" | "an" | "and" | "or" | "is" | "in" | "at" | "to" | "for" | "of" | "on"
-                | "with" | "by" | "from"
+            "the"
+                | "a"
+                | "an"
+                | "and"
+                | "or"
+                | "is"
+                | "in"
+                | "at"
+                | "to"
+                | "for"
+                | "of"
+                | "on"
+                | "with"
+                | "by"
+                | "from"
         )
     }
 

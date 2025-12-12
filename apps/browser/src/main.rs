@@ -111,7 +111,9 @@ fn main() {
                     println!("Cannot close the last tab");
                 }
             }
-            _ => println!("Unknown command. Try: open, tab, close, back, bookmark, bookmarks, tabs, exit"),
+            _ => println!(
+                "Unknown command. Try: open, tab, close, back, bookmark, bookmarks, tabs, exit"
+            ),
         }
     }
 }

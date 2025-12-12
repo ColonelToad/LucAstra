@@ -39,8 +39,7 @@ pub struct FileEntry {
 
 impl FileEntry {
     pub fn from_path(path: &Path) -> FileOpResult<Self> {
-        let metadata = std::fs::metadata(path)
-            .map_err(|e| FileOpError::IoError(e))?;
+        let metadata = std::fs::metadata(path).map_err(|e| FileOpError::IoError(e))?;
 
         let name = path
             .file_name()
@@ -48,7 +47,10 @@ impl FileEntry {
             .unwrap_or("<unknown>")
             .to_string();
 
-        let modified = format!("{:?}", metadata.modified().unwrap_or(std::time::SystemTime::now()));
+        let modified = format!(
+            "{:?}",
+            metadata.modified().unwrap_or(std::time::SystemTime::now())
+        );
 
         Ok(Self {
             path: path.to_path_buf(),
@@ -72,7 +74,10 @@ impl FileManager {
     /// Create a new file manager starting at a directory
     pub fn new(path: PathBuf) -> FileOpResult<Self> {
         if !path.is_dir() {
-            return Err(FileOpError::NotFound(format!("{} is not a directory", path.display())));
+            return Err(FileOpError::NotFound(format!(
+                "{} is not a directory",
+                path.display()
+            )));
         }
 
         let mut fm = Self {
@@ -100,8 +105,7 @@ impl FileManager {
             });
         }
 
-        let entries = std::fs::read_dir(&self.current_dir)
-            .map_err(|e| FileOpError::IoError(e))?;
+        let entries = std::fs::read_dir(&self.current_dir).map_err(|e| FileOpError::IoError(e))?;
 
         for entry in entries.flatten() {
             if let Ok(file_entry) = FileEntry::from_path(&entry.path()) {
@@ -124,7 +128,10 @@ impl FileManager {
     /// Navigate to a directory
     pub fn navigate(&mut self, path: &Path) -> FileOpResult<()> {
         if !path.is_dir() {
-            return Err(FileOpError::NotFound(format!("{} is not a directory", path.display())));
+            return Err(FileOpError::NotFound(format!(
+                "{} is not a directory",
+                path.display()
+            )));
         }
 
         self.history.push(self.current_dir.clone());
@@ -140,7 +147,9 @@ impl FileManager {
             self.refresh()?;
             Ok(())
         } else {
-            Err(FileOpError::OperationFailed("No previous directory".to_string()))
+            Err(FileOpError::OperationFailed(
+                "No previous directory".to_string(),
+            ))
         }
     }
 
@@ -150,8 +159,7 @@ impl FileManager {
             return Err(FileOpError::NotFound(src.display().to_string()));
         }
 
-        std::fs::copy(src, dest)
-            .map_err(|e| FileOpError::IoError(e))?;
+        std::fs::copy(src, dest).map_err(|e| FileOpError::IoError(e))?;
 
         tracing::info!("Copied {} to {}", src.display(), dest.display());
         Ok(())
@@ -163,8 +171,7 @@ impl FileManager {
             return Err(FileOpError::NotFound(src.display().to_string()));
         }
 
-        std::fs::rename(src, dest)
-            .map_err(|e| FileOpError::IoError(e))?;
+        std::fs::rename(src, dest).map_err(|e| FileOpError::IoError(e))?;
 
         tracing::info!("Moved {} to {}", src.display(), dest.display());
         self.refresh()?;
@@ -178,11 +185,9 @@ impl FileManager {
         }
 
         if path.is_dir() {
-            std::fs::remove_dir_all(path)
-                .map_err(|e| FileOpError::IoError(e))?;
+            std::fs::remove_dir_all(path).map_err(|e| FileOpError::IoError(e))?;
         } else {
-            std::fs::remove_file(path)
-                .map_err(|e| FileOpError::IoError(e))?;
+            std::fs::remove_file(path).map_err(|e| FileOpError::IoError(e))?;
         }
 
         tracing::info!("Deleted {}", path.display());

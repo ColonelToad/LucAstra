@@ -164,7 +164,9 @@ impl Default for ProviderConfig {
 pub async fn create_provider(config: ProviderConfig) -> ProviderResult<Box<dyn LLMProvider>> {
     match config.provider.as_str() {
         "llamafile" => {
-            let endpoint = config.endpoint.unwrap_or_else(|| "http://localhost:8000".to_string());
+            let endpoint = config
+                .endpoint
+                .unwrap_or_else(|| "http://localhost:8000".to_string());
             Ok(Box::new(llamafile::LlamafileProvider::new(endpoint)))
         }
         "openai" => {

@@ -470,7 +470,10 @@ impl Config {
             let config: Config = toml::from_str(&contents)?;
             Ok(config)
         } else {
-            tracing::info!("Config not found, creating default at: {}", config_path.display());
+            tracing::info!(
+                "Config not found, creating default at: {}",
+                config_path.display()
+            );
             let config = Config::default();
             config.save()?;
             Ok(config)

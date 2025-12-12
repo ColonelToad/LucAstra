@@ -98,7 +98,10 @@ mod tests {
         );
 
         assert_eq!(config.executable_path, PathBuf::from("/app/soffice"));
-        assert_eq!(config.document_path, PathBuf::from("/home/user/document.odt"));
+        assert_eq!(
+            config.document_path,
+            PathBuf::from("/home/user/document.odt")
+        );
         assert!(config.sandbox_enabled);
     }
 

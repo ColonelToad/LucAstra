@@ -1,8 +1,7 @@
 //! Llamafile provider implementation.
 
 use super::{
-    CompletionRequest, CompletionResponse, LLMProvider,
-    ProviderError, ProviderResult, StopReason,
+    CompletionRequest, CompletionResponse, LLMProvider, ProviderError, ProviderResult, StopReason,
 };
 use async_trait::async_trait;
 use reqwest::Client;

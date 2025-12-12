@@ -12,7 +12,10 @@ pub enum CommandPayload {
     ListDevices,
 
     /// Mount a device by path (e.g., "/dev/usb0")
-    Mount { device_path: String, mount_point: String },
+    Mount {
+        device_path: String,
+        mount_point: String,
+    },
 
     /// Unmount a device
     Unmount { mount_point: String },

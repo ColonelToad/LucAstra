@@ -145,15 +145,14 @@ mod tests {
 
     #[test]
     fn test_custom_base_url() {
-        let provider = AnthropicProvider::new("test-key")
-            .with_base_url("https://custom.anthropic.com");
+        let provider =
+            AnthropicProvider::new("test-key").with_base_url("https://custom.anthropic.com");
         assert_eq!(provider.base_url, "https://custom.anthropic.com");
     }
 
     #[test]
     fn test_custom_model() {
-        let provider = AnthropicProvider::new("test-key")
-            .with_model("claude-3-opus-20240229");
+        let provider = AnthropicProvider::new("test-key").with_model("claude-3-opus-20240229");
         assert_eq!(provider.default_model(), "claude-3-opus-20240229");
     }
 }

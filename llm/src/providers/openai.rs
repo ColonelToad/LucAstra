@@ -5,7 +5,10 @@ use super::{
     ProviderError, ProviderResult, StopReason,
 };
 use async_trait::async_trait;
-use reqwest::{Client, header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE}};
+use reqwest::{
+    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE},
+    Client,
+};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -178,7 +181,9 @@ impl LLMProvider for OpenAIProvider {
     }
 
     async fn embed(&self, request: EmbeddingRequest) -> ProviderResult<EmbeddingResponse> {
-        let model = request.model.unwrap_or_else(|| self.embedding_model.clone());
+        let model = request
+            .model
+            .unwrap_or_else(|| self.embedding_model.clone());
 
         let openai_req = OpenAIEmbeddingRequest {
             model: model.clone(),
@@ -218,16 +223,11 @@ impl LLMProvider for OpenAIProvider {
             .await
             .map_err(|e| ProviderError::InvalidResponse(e.to_string()))?;
 
-        let embeddings: Vec<Vec<f32>> = openai_resp
-            .data
-            .into_iter()
-            .map(|d| d.embedding)
-            .collect();
+        let embeddings: Vec<Vec<f32>> = openai_resp.data.into_iter().map(|d| d.embedding).collect();
 
-        let dimensions = embeddings
-            .first()
-            .map(|e| e.len())
-            .ok_or_else(|| ProviderError::InvalidResponse("No embeddings in response".to_string()))?;
+        let dimensions = embeddings.first().map(|e| e.len()).ok_or_else(|| {
+            ProviderError::InvalidResponse("No embeddings in response".to_string())
+        })?;
 
         Ok(EmbeddingResponse {
             embeddings,
@@ -260,7 +260,8 @@ mod tests {
 
     #[test]
     fn test_custom_model() {
-        let provider = OpenAIProvider::new("test-key".to_string(), Some("gpt-4".to_string())).unwrap();
+        let provider =
+            OpenAIProvider::new("test-key".to_string(), Some("gpt-4".to_string())).unwrap();
         assert_eq!(provider.default_model(), "gpt-4");
     }
 

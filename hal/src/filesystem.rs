@@ -49,10 +49,9 @@ impl FileSystemDriver for MockFileSystem {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>> {
-        self.files
-            .get(path)
-            .cloned()
-            .ok_or_else(|| lucastra_core::LuCastraError::FilesystemError(format!("File not found: {}", path)))
+        self.files.get(path).cloned().ok_or_else(|| {
+            lucastra_core::LuCastraError::FilesystemError(format!("File not found: {}", path))
+        })
     }
 
     fn write_file(&mut self, path: &str, data: &[u8]) -> Result<()> {

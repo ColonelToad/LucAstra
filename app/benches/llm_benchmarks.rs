@@ -1,11 +1,7 @@
 //! Performance benchmarks for LucAstra LLM and vector search.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use lucastra_llm::{
-    cache::EmbeddingCache,
-    conversation::Conversation,
-    rate_limit::RateLimiter,
-};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use lucastra_llm::{cache::EmbeddingCache, conversation::Conversation, rate_limit::RateLimiter};
 use lucastra_search::vector::VectorIndex;
 use std::time::Duration;
 use tempfile::TempDir;
@@ -15,7 +11,7 @@ fn benchmark_vector_search(c: &mut Criterion) {
 
     for size in [10, 100, 1000].iter() {
         let mut index = VectorIndex::new();
-        
+
         // Populate index
         for i in 0..*size {
             let embedding = (0..384).map(|j| ((i + j) as f32) / 1000.0).collect();
@@ -24,9 +20,7 @@ fn benchmark_vector_search(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, _| {
             let query = (0..384).map(|i| (i as f32) / 1000.0).collect();
-            b.iter(|| {
-                black_box(index.search(&query, 5))
-            });
+            b.iter(|| black_box(index.search(&query, 5)));
         });
     }
 
@@ -41,9 +35,7 @@ fn benchmark_cosine_similarity(c: &mut Criterion) {
         let vec_b: Vec<f32> = (0..*dim).map(|i| ((i + 1) as f32) / 1000.0).collect();
 
         group.bench_with_input(BenchmarkId::from_parameter(dim), dim, |b, _| {
-            b.iter(|| {
-                black_box(lucastra_search::vector::cosine_similarity(&vec_a, &vec_b))
-            });
+            b.iter(|| black_box(lucastra_search::vector::cosine_similarity(&vec_a, &vec_b)));
         });
     }
 
@@ -63,15 +55,11 @@ fn benchmark_embedding_cache(c: &mut Criterion) {
     }
 
     group.bench_function("cache_get_hit", |b| {
-        b.iter(|| {
-            black_box(cache.get("text_50"))
-        });
+        b.iter(|| black_box(cache.get("text_50")));
     });
 
     group.bench_function("cache_get_miss", |b| {
-        b.iter(|| {
-            black_box(cache.get("text_9999"))
-        });
+        b.iter(|| black_box(cache.get("text_9999")));
     });
 
     group.bench_function("cache_set", |b| {
@@ -111,9 +99,7 @@ fn benchmark_conversation(c: &mut Criterion) {
                 timestamp: i,
             });
         }
-        b.iter(|| {
-            black_box(conv.to_prompt())
-        });
+        b.iter(|| black_box(conv.to_prompt()));
     });
 
     group.finish();
@@ -125,9 +111,8 @@ fn benchmark_rate_limiter(c: &mut Criterion) {
     group.bench_function("acquire_under_limit", |b| {
         let limiter = RateLimiter::new(1000); // High limit
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        b.to_async(runtime).iter(|| async {
-            black_box(limiter.acquire().await)
-        });
+        b.to_async(runtime)
+            .iter(|| async { black_box(limiter.acquire().await) });
     });
 
     group.finish();

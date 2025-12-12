@@ -37,7 +37,7 @@ pub struct VectorSearchResult {
 }
 
 /// Simple vector index using cosine similarity (naive implementation).
-/// 
+///
 /// TODO: Replace with HNSW for better performance on large corpora.
 /// Current implementation is O(n) for search, HNSW would be O(log n).
 pub struct VectorIndex {
@@ -92,7 +92,11 @@ impl VectorIndex {
     }
 
     /// Search for similar documents using cosine similarity.
-    pub fn search(&self, query_embedding: &[f32], k: usize) -> VectorResult<Vec<VectorSearchResult>> {
+    pub fn search(
+        &self,
+        query_embedding: &[f32],
+        k: usize,
+    ) -> VectorResult<Vec<VectorSearchResult>> {
         if query_embedding.is_empty() {
             return Err(VectorError::EmptyEmbeddings);
         }
@@ -215,11 +219,13 @@ mod tests {
     #[test]
     fn test_vector_index_dimension_mismatch() {
         let mut index = VectorIndex::new();
-        index.add_document(
-            PathBuf::from("/test/doc1.txt"),
-            vec![0.1, 0.2, 0.3],
-            "Doc 1".to_string(),
-        ).unwrap();
+        index
+            .add_document(
+                PathBuf::from("/test/doc1.txt"),
+                vec![0.1, 0.2, 0.3],
+                "Doc 1".to_string(),
+            )
+            .unwrap();
 
         let result = index.add_document(
             PathBuf::from("/test/doc2.txt"),
@@ -233,24 +239,30 @@ mod tests {
     #[test]
     fn test_vector_index_search() {
         let mut index = VectorIndex::new();
-        
-        index.add_document(
-            PathBuf::from("/test/doc1.txt"),
-            vec![1.0, 0.0, 0.0],
-            "Document about X".to_string(),
-        ).unwrap();
-        
-        index.add_document(
-            PathBuf::from("/test/doc2.txt"),
-            vec![0.0, 1.0, 0.0],
-            "Document about Y".to_string(),
-        ).unwrap();
-        
-        index.add_document(
-            PathBuf::from("/test/doc3.txt"),
-            vec![0.7, 0.7, 0.0],
-            "Document about X and Y".to_string(),
-        ).unwrap();
+
+        index
+            .add_document(
+                PathBuf::from("/test/doc1.txt"),
+                vec![1.0, 0.0, 0.0],
+                "Document about X".to_string(),
+            )
+            .unwrap();
+
+        index
+            .add_document(
+                PathBuf::from("/test/doc2.txt"),
+                vec![0.0, 1.0, 0.0],
+                "Document about Y".to_string(),
+            )
+            .unwrap();
+
+        index
+            .add_document(
+                PathBuf::from("/test/doc3.txt"),
+                vec![0.7, 0.7, 0.0],
+                "Document about X and Y".to_string(),
+            )
+            .unwrap();
 
         // Query similar to doc1
         let query = vec![0.9, 0.1, 0.0];
@@ -264,22 +276,21 @@ mod tests {
     #[test]
     fn test_vector_index_empty_embeddings() {
         let mut index = VectorIndex::new();
-        let result = index.add_document(
-            PathBuf::from("/test/doc.txt"),
-            vec![],
-            "Empty".to_string(),
-        );
+        let result =
+            index.add_document(PathBuf::from("/test/doc.txt"), vec![], "Empty".to_string());
         assert!(matches!(result, Err(VectorError::EmptyEmbeddings)));
     }
 
     #[test]
     fn test_vector_index_clear() {
         let mut index = VectorIndex::new();
-        index.add_document(
-            PathBuf::from("/test/doc.txt"),
-            vec![1.0, 0.0],
-            "Test".to_string(),
-        ).unwrap();
+        index
+            .add_document(
+                PathBuf::from("/test/doc.txt"),
+                vec![1.0, 0.0],
+                "Test".to_string(),
+            )
+            .unwrap();
 
         assert_eq!(index.len(), 1);
         index.clear();

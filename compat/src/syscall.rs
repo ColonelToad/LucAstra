@@ -190,7 +190,7 @@ impl SyscallHandler {
 
                 if let Some(desc) = self.fd_table.get_mut(fd) {
                     match whence {
-                        0 => desc.offset = offset as u64, // SEEK_SET
+                        0 => desc.offset = offset as u64,                        // SEEK_SET
                         1 => desc.offset = (desc.offset as i64 + offset) as u64, // SEEK_CUR
                         2 => {
                             // SEEK_END

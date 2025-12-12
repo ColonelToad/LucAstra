@@ -12,13 +12,12 @@ use lucastra_tools::{
     install::InstallTool,
     read::ReadTool,
     search::SearchTool,
-    Tool,
-    ToolResult,
+    Tool, ToolResult,
 };
 use std::path::Path;
 
-pub mod observability;
 pub mod metrics;
+pub mod observability;
 pub use metrics::{Metrics, MetricsSnapshot};
 
 #[cfg(feature = "relibc")]
@@ -105,7 +104,7 @@ impl SystemState {
         new_config.save().map_err(|e| {
             lucastra_core::LuCastraError::ConfigError(format!("Failed to save config: {}", e))
         })?;
-        
+
         self.config = new_config;
         tracing::info!("Configuration updated and saved");
         Ok(())
@@ -138,12 +137,7 @@ impl SystemState {
                 // Retrieve context if RAG is enabled
                 if use_rag.unwrap_or(false) {
                     let search_results = self.search_service.search(text, 3)?;
-                    context = Some(
-                        search_results
-                            .iter()
-                            .map(|r| r.snippet.clone())
-                            .collect(),
-                    );
+                    context = Some(search_results.iter().map(|r| r.snippet.clone()).collect());
                 }
 
                 // Call LLM
@@ -234,10 +228,16 @@ impl SystemState {
     /// Parse and execute tools from LLM JSON output.
     pub fn execute_tools_from_json(&self, json_str: &str) -> Vec<ToolResult> {
         let tools: Result<Vec<Tool>, _> = serde_json::from_str(json_str);
-        
+
         match tools {
-            Ok(tools) => tools.iter().map(|tool| self.execute_tool(tool.clone())).collect(),
-            Err(e) => vec![ToolResult::failure("parse", format!("Failed to parse tools: {}", e))],
+            Ok(tools) => tools
+                .iter()
+                .map(|tool| self.execute_tool(tool.clone()))
+                .collect(),
+            Err(e) => vec![ToolResult::failure(
+                "parse",
+                format!("Failed to parse tools: {}", e),
+            )],
         }
     }
 }

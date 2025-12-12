@@ -45,8 +45,8 @@ impl LlamafileClient {
 
     /// Check if the server is reachable (blocking).
     pub fn health_check(&self) -> Result<bool, ClientError> {
-        let runtime = tokio::runtime::Runtime::new()
-            .map_err(|e| ClientError::RequestError(e.to_string()))?;
+        let runtime =
+            tokio::runtime::Runtime::new().map_err(|e| ClientError::RequestError(e.to_string()))?;
         runtime.block_on(self.health_check_async())
     }
 
@@ -65,8 +65,8 @@ impl LlamafileClient {
         n_predict: Option<i32>,
         temperature: Option<f32>,
     ) -> Result<String, ClientError> {
-        let runtime = tokio::runtime::Runtime::new()
-            .map_err(|e| ClientError::RequestError(e.to_string()))?;
+        let runtime =
+            tokio::runtime::Runtime::new().map_err(|e| ClientError::RequestError(e.to_string()))?;
         runtime.block_on(self.complete_async(prompt, n_predict, temperature))
     }
 

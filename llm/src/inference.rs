@@ -50,7 +50,10 @@ impl LLMService {
         let temperature = request.temperature.unwrap_or(0.7);
 
         // Try to call the LLM server, fall back to mock if unavailable
-        match self.client.complete(&prompt, Some(max_tokens), Some(temperature)) {
+        match self
+            .client
+            .complete(&prompt, Some(max_tokens), Some(temperature))
+        {
             Ok(text) => Ok(InferenceResponse {
                 text,
                 stop_reason: "complete".to_string(),

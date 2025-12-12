@@ -1,4 +1,6 @@
-use iced::widget::{button, checkbox, column, container, pick_list, row, scrollable, text, text_input, Column};
+use iced::widget::{
+    button, checkbox, column, container, pick_list, row, scrollable, text, text_input, Column,
+};
 use iced::{Alignment, Color, Element, Length, Sandbox, Settings, Size};
 use lucastra_app::SystemState;
 use lucastra_config::{self, Config};
@@ -362,9 +364,11 @@ impl App {
             .padding(5),
             row![
                 text("Model Size:").width(Length::Fixed(140.0)),
-                pick_list(model_sizes.clone(), Some(self.temp_config.llm.model_size.clone()), |v| {
-                    Message::UpdateSetting(SettingChange::ModelSize(v))
-                }),
+                pick_list(
+                    model_sizes.clone(),
+                    Some(self.temp_config.llm.model_size.clone()),
+                    |v| { Message::UpdateSetting(SettingChange::ModelSize(v)) }
+                ),
             ]
             .spacing(10)
             .padding(5),
@@ -486,7 +490,8 @@ impl App {
             stack = stack.push(
                 container(
                     row![
-                        text("Info").style(iced::theme::Text::Color(Color::from_rgb(0.8, 0.9, 1.0))),
+                        text("Info")
+                            .style(iced::theme::Text::Color(Color::from_rgb(0.8, 0.9, 1.0))),
                         text(&notice.message).style(iced::theme::Text::Color(Color::WHITE)),
                         button(text("Dismiss")).on_press(Message::DismissToast(notice.id)),
                     ]
@@ -528,8 +533,8 @@ fn toast_style(_theme: &iced::Theme) -> container::Appearance {
 }
 
 fn main() -> iced::Result {
-    let logs_dir = lucastra_config::get_logs_dir()
-        .unwrap_or_else(|_| std::path::PathBuf::from("./logs"));
+    let logs_dir =
+        lucastra_config::get_logs_dir().unwrap_or_else(|_| std::path::PathBuf::from("./logs"));
 
     std::fs::create_dir_all(&logs_dir).ok();
 
@@ -553,7 +558,10 @@ fn main() -> iced::Result {
 
     let settings = Settings {
         window: iced::window::Settings {
-            size: Size::new(config.gui.window_width as f32, config.gui.window_height as f32),
+            size: Size::new(
+                config.gui.window_width as f32,
+                config.gui.window_height as f32,
+            ),
             ..Default::default()
         },
         ..Default::default()

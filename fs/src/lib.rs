@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use lucastra_core::{command::FileEntry, Result};
 use lucastra_hal::FileSystemDriver;
+use std::collections::HashMap;
 use tracing::info;
 
 /// Filesystem manager: handles mounting, file I/O, and virtual filesystem abstractions.
@@ -23,8 +23,7 @@ impl FilesystemManager {
     ) -> Result<()> {
         let mut driver = Box::new(driver);
         driver.mount(mount_point)?;
-        self.mount_points
-            .insert(mount_point.to_string(), driver);
+        self.mount_points.insert(mount_point.to_string(), driver);
         info!("Filesystem mounted at {}", mount_point);
         Ok(())
     }
@@ -36,9 +35,10 @@ impl FilesystemManager {
             info!("Filesystem unmounted from {}", mount_point);
             Ok(())
         } else {
-            Err(lucastra_core::LuCastraError::FilesystemError(
-                format!("Mount point not found: {}", mount_point),
-            ))
+            Err(lucastra_core::LuCastraError::FilesystemError(format!(
+                "Mount point not found: {}",
+                mount_point
+            )))
         }
     }
 
@@ -49,9 +49,10 @@ impl FilesystemManager {
                 return Ok(driver.as_ref());
             }
         }
-        Err(lucastra_core::LuCastraError::FilesystemError(
-            format!("No filesystem mounted for path: {}", path),
-        ))
+        Err(lucastra_core::LuCastraError::FilesystemError(format!(
+            "No filesystem mounted for path: {}",
+            path
+        )))
     }
 
     /// Resolve a path mutably to the appropriate filesystem driver.
@@ -61,9 +62,10 @@ impl FilesystemManager {
                 return Ok(driver.as_mut());
             }
         }
-        Err(lucastra_core::LuCastraError::FilesystemError(
-            format!("No filesystem mounted for path: {}", path),
-        ))
+        Err(lucastra_core::LuCastraError::FilesystemError(format!(
+            "No filesystem mounted for path: {}",
+            path
+        )))
     }
 
     /// List files in a directory.

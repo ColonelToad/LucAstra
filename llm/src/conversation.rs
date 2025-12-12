@@ -85,7 +85,7 @@ impl Conversation {
         Self {
             id: Uuid::new_v4().to_string(),
             messages,
-            max_messages: 20, // Keep last 20 messages by default
+            max_messages: 20,       // Keep last 20 messages by default
             max_tokens: Some(8000), // Rough token limit
         }
     }
@@ -143,7 +143,10 @@ impl Conversation {
     /// Trim the conversation to fit within context window.
     fn trim_context(&mut self) {
         // Always keep system prompt (first message if it exists)
-        let has_system = self.messages.front().map_or(false, |m| m.role == Role::System);
+        let has_system = self
+            .messages
+            .front()
+            .map_or(false, |m| m.role == Role::System);
         let system_offset = if has_system { 1 } else { 0 };
 
         // Remove old messages if exceeding max_messages
@@ -210,7 +213,11 @@ impl Conversation {
 
     /// Clear all messages except system prompt.
     pub fn clear(&mut self) {
-        let system_msg = self.messages.front().cloned().filter(|m| m.role == Role::System);
+        let system_msg = self
+            .messages
+            .front()
+            .cloned()
+            .filter(|m| m.role == Role::System);
         self.messages.clear();
         if let Some(msg) = system_msg {
             self.messages.push_back(msg);
@@ -235,7 +242,7 @@ mod tests {
         let mut conv = Conversation::new(None);
         conv.add_user_message("Hello".to_string());
         conv.add_assistant_message("Hi there!".to_string());
-        
+
         assert_eq!(conv.len(), 2);
         assert!(!conv.is_empty());
     }
@@ -243,7 +250,7 @@ mod tests {
     #[test]
     fn test_trim_by_message_count() {
         let mut conv = Conversation::new(None).with_max_messages(3);
-        
+
         for i in 0..5 {
             conv.add_user_message(format!("Message {}", i));
         }
@@ -254,11 +261,11 @@ mod tests {
     #[test]
     fn test_trim_preserves_system_prompt() {
         let mut conv = Conversation::new(Some("System prompt".to_string())).with_max_messages(2);
-        
+
         conv.add_user_message("User 1".to_string());
         conv.add_assistant_message("Assistant 1".to_string());
         conv.add_user_message("User 2".to_string());
-        
+
         // Should have: system + last 2 messages
         assert_eq!(conv.messages.len(), 3);
         assert_eq!(conv.messages[0].role, Role::System);
@@ -269,7 +276,7 @@ mod tests {
         let mut conv = Conversation::new(Some("Be helpful".to_string()));
         conv.add_user_message("Hello".to_string());
         conv.add_assistant_message("Hi!".to_string());
-        
+
         let prompt = conv.to_prompt();
         assert!(prompt.contains("System: Be helpful"));
         assert!(prompt.contains("User: Hello"));
@@ -280,7 +287,7 @@ mod tests {
     fn test_clear_conversation() {
         let mut conv = Conversation::new(Some("System".to_string()));
         conv.add_user_message("Test".to_string());
-        
+
         assert_eq!(conv.len(), 1);
         conv.clear();
         assert_eq!(conv.len(), 0);

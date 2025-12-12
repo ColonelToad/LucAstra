@@ -1,5 +1,5 @@
 use lucastra_app::SystemState;
-use lucastra_tools::{Tool, InstallMethod};
+use lucastra_tools::{InstallMethod, Tool};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing

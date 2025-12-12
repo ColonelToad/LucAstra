@@ -97,7 +97,14 @@ impl FileAccessValidator {
     /// Validate a path against whitelist
     pub fn validate_path(&self, path: &Path, operation: FileOperation) -> FileAccessResult<()> {
         // Reject write operations if disabled
-        if matches!(operation, FileOperation::Write | FileOperation::Move | FileOperation::Delete | FileOperation::Copy) && !self.allow_host_write {
+        if matches!(
+            operation,
+            FileOperation::Write
+                | FileOperation::Move
+                | FileOperation::Delete
+                | FileOperation::Copy
+        ) && !self.allow_host_write
+        {
             return Err(FileAccessError::PermissionDenied);
         }
 
@@ -107,12 +114,14 @@ impl FileAccessValidator {
         }
 
         // Check if path is in allowed dirs
-        let path = path.canonicalize()
+        let path = path
+            .canonicalize()
             .map_err(|_| FileAccessError::InvalidPath(path.display().to_string()))?;
 
-        let is_allowed = self.allowed_dirs.iter().any(|allowed| {
-            path.starts_with(allowed)
-        });
+        let is_allowed = self
+            .allowed_dirs
+            .iter()
+            .any(|allowed| path.starts_with(allowed));
 
         if !is_allowed {
             return Err(FileAccessError::NotWhitelisted(path.display().to_string()));
@@ -221,7 +230,10 @@ impl FileAccessTool {
         self.validator.validate_path(path, operation)?;
 
         // Validate destination if needed
-        if matches!(operation, FileOperation::Move | FileOperation::Copy | FileOperation::Write) {
+        if matches!(
+            operation,
+            FileOperation::Move | FileOperation::Copy | FileOperation::Write
+        ) {
             if let Some(dest) = dest_path {
                 if dest.exists() {
                     self.validator.validate_path(dest, operation)?;
@@ -307,7 +319,7 @@ mod tests {
     fn test_validator_rejects_write_when_disabled() {
         let validator = FileAccessValidator::new(vec![], false, false, false);
         let path = PathBuf::from("/tmp/test.txt");
-        
+
         let result = validator.validate_path(&path, FileOperation::Write);
         assert!(matches!(result, Err(FileAccessError::PermissionDenied)));
     }
@@ -318,7 +330,7 @@ mod tests {
         let allowed = vec![temp.join("lucastra_test_allowed")];
         let validator = FileAccessValidator::new(allowed, true, false, false);
         let unlisted = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-        
+
         // unlisted should not be in allowed dirs
         let result = validator.validate_path(&unlisted, FileOperation::Read);
         assert!(matches!(result, Err(FileAccessError::NotWhitelisted(_))));
@@ -346,7 +358,8 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("lucastra_host_file_access_{}_{}", tag, unique));
+        let dir =
+            std::env::temp_dir().join(format!("lucastra_host_file_access_{}_{}", tag, unique));
         fs::create_dir_all(&dir).unwrap();
         dir
     }

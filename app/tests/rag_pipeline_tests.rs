@@ -25,8 +25,11 @@ fn test_rag_pipeline_ready() {
     // Verify that RAG components are available
     let has_search = state.config.search.max_results > 0;
     let has_llm = !state.config.llm.server_url.is_empty();
-    
-    assert!(has_search && has_llm, "RAG pipeline components not properly initialized");
+
+    assert!(
+        has_search && has_llm,
+        "RAG pipeline components not properly initialized"
+    );
 }
 
 #[test]
@@ -36,7 +39,7 @@ fn test_document_indexing() {
     // The system state initializes with example documents
     // This test verifies that document indexing can occur
     // Actual index operations would require the search service to be callable
-    
+
     // Check that the configuration allows indexing
     assert!(state.config.search.max_results > 0); // Should be able to search
 }
@@ -46,6 +49,12 @@ fn test_search_configuration() {
     let state = SystemState::new().expect("Failed to create SystemState");
 
     // Verify search config has proper defaults
-    assert!(state.config.search.max_results > 0, "Search max_results should be positive");
-    assert!(!state.config.search.embedding_model.is_empty(), "Embedding model should be configured");
+    assert!(
+        state.config.search.max_results > 0,
+        "Search max_results should be positive"
+    );
+    assert!(
+        !state.config.search.embedding_model.is_empty(),
+        "Embedding model should be configured"
+    );
 }

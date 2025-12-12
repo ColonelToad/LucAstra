@@ -14,7 +14,7 @@ pub struct RateLimiter {
 
 impl RateLimiter {
     /// Create a new rate limiter.
-    /// 
+    ///
     /// # Arguments
     /// * `requests_per_minute` - Maximum requests per minute
     pub fn new(requests_per_minute: u32) -> Self {
@@ -83,7 +83,7 @@ mod tests {
     #[tokio::test]
     async fn test_rate_limiter_basic() {
         let limiter = RateLimiter::new(60); // 60 requests/min = 1 req/sec
-        
+
         // Should acquire immediately (bucket starts full)
         limiter.acquire().await;
         assert!(limiter.try_acquire().await); // Should still have tokens
@@ -92,7 +92,7 @@ mod tests {
     #[tokio::test]
     async fn test_rate_limiter_refill() {
         let limiter = RateLimiter::new(60); // 1 req/sec
-        
+
         // Drain all tokens
         for _ in 0..60 {
             limiter.acquire().await;

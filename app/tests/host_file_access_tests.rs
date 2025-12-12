@@ -15,7 +15,9 @@ fn test_host_file_access_integration() {
 
     // Test that we can create validator and check paths
     let config = &state.config.security;
-    let allowed_dirs: Vec<PathBuf> = config.allowed_host_dirs.iter()
+    let allowed_dirs: Vec<PathBuf> = config
+        .allowed_host_dirs
+        .iter()
         .map(|s| PathBuf::from(s))
         .collect();
     let validator = FileAccessValidator::new(
@@ -36,7 +38,9 @@ fn test_file_access_validator_with_security_config() {
     security_config.allow_host_read = true;
     security_config.allow_host_write = false;
 
-    let allowed_dirs: Vec<PathBuf> = security_config.allowed_host_dirs.iter()
+    let allowed_dirs: Vec<PathBuf> = security_config
+        .allowed_host_dirs
+        .iter()
         .map(|s| PathBuf::from(s))
         .collect();
     let validator = FileAccessValidator::new(
@@ -71,7 +75,11 @@ fn test_file_access_tool_execution() {
     fs::create_dir_all(&audit_dir).unwrap();
 
     // Create validator
-    let allowed_dirs: Vec<PathBuf> = state.config.security.allowed_host_dirs.iter()
+    let allowed_dirs: Vec<PathBuf> = state
+        .config
+        .security
+        .allowed_host_dirs
+        .iter()
         .map(|s| PathBuf::from(s))
         .collect();
     let validator = FileAccessValidator::new(
@@ -85,11 +93,7 @@ fn test_file_access_tool_execution() {
     let tool = FileAccessTool::new(validator, audit_dir.clone());
 
     // Test reading the file (will likely fail due to whitelist but should not panic)
-    let result = tool.execute(
-        FileOperation::Read,
-        &test_file,
-        None,
-    );
+    let result = tool.execute(FileOperation::Read, &test_file, None);
     // Should have a result (either success or failure)
     assert!(!result.tool.is_empty());
 
@@ -108,7 +112,9 @@ fn test_audit_logging_integration() {
     fs::create_dir_all(&audit_dir).unwrap();
 
     let config = SecurityConfig::default();
-    let allowed_dirs: Vec<PathBuf> = config.allowed_host_dirs.iter()
+    let allowed_dirs: Vec<PathBuf> = config
+        .allowed_host_dirs
+        .iter()
         .map(|s| PathBuf::from(s))
         .collect();
     let validator = FileAccessValidator::new(
@@ -122,11 +128,7 @@ fn test_audit_logging_integration() {
     // Execute an operation
     let test_file = test_dir.join("test.txt");
     fs::write(&test_file, "test").unwrap();
-    let _ = tool.execute(
-        FileOperation::Read,
-        &test_file,
-        None,
-    );
+    let _ = tool.execute(FileOperation::Read, &test_file, None);
 
     // Check that audit log directory was created
     assert!(audit_dir.exists());

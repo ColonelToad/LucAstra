@@ -56,11 +56,11 @@ impl EmbeddingCache {
         if cache_file.exists() {
             let contents = fs::read_to_string(&cache_file)?;
             let entry: CacheEntry = serde_json::from_str(&contents)?;
-            
+
             // Store in memory cache
             self.memory_cache.insert(hash, entry.embedding.clone());
             self.trim_memory_cache();
-            
+
             return Ok(Some(entry.embedding));
         }
 

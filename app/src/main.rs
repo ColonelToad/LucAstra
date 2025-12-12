@@ -7,21 +7,20 @@ use tracing_subscriber::layer::SubscriberExt;
 
 fn main() -> lucastra_core::Result<()> {
     // Initialize rotating file logging
-    let logs_dir = lucastra_config::get_logs_dir()
-        .unwrap_or_else(|_| std::path::PathBuf::from("./logs"));
-    
+    let logs_dir =
+        lucastra_config::get_logs_dir().unwrap_or_else(|_| std::path::PathBuf::from("./logs"));
+
     std::fs::create_dir_all(&logs_dir).ok();
-    
+
     let file_appender = tracing_appender::rolling::daily(logs_dir, "lucastra.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
-    
+
     let file_layer = tracing_subscriber::fmt::layer()
         .with_writer(non_blocking)
         .with_ansi(false);
-    
-    let stdout_layer = tracing_subscriber::fmt::layer()
-        .with_writer(std::io::stdout);
-    
+
+    let stdout_layer = tracing_subscriber::fmt::layer().with_writer(std::io::stdout);
+
     let subscriber = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::from_default_env()
@@ -29,9 +28,10 @@ fn main() -> lucastra_core::Result<()> {
         )
         .with(file_layer)
         .with(stdout_layer);
-    
-    tracing::subscriber::set_global_default(subscriber)
-        .map_err(|e| lucastra_core::LuCastraError::ServiceError(format!("Failed to set logger: {}", e)))?;
+
+    tracing::subscriber::set_global_default(subscriber).map_err(|e| {
+        lucastra_core::LuCastraError::ServiceError(format!("Failed to set logger: {}", e))
+    })?;
 
     info!("=== LucAstra OS Boot ===");
 
@@ -53,7 +53,9 @@ fn main() -> lucastra_core::Result<()> {
     info!("Checking LLM server health...");
     match state.llm_service.health_check() {
         Ok(true) => info!("LLM server is online"),
-        Ok(false) => info!("LLM server is unreachable (expected if not running; will use mock responses)"),
+        Ok(false) => {
+            info!("LLM server is unreachable (expected if not running; will use mock responses)")
+        }
         Err(e) => info!("LLM health check error (expected; will use mock): {}", e),
     }
 

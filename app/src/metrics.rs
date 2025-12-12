@@ -1,7 +1,7 @@
+use serde::Serialize;
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::collections::HashMap;
-use serde::Serialize;
 
 /// Metrics collector for system observability
 #[derive(Clone)]
@@ -52,23 +52,31 @@ impl Metrics {
 
     /// Record a successful tool execution
     pub fn record_tool_success(&self) {
-        self.inner.tool_success_count.fetch_add(1, Ordering::Relaxed);
+        self.inner
+            .tool_success_count
+            .fetch_add(1, Ordering::Relaxed);
     }
 
     /// Record a failed tool execution
     pub fn record_tool_failure(&self) {
-        self.inner.tool_failure_count.fetch_add(1, Ordering::Relaxed);
+        self.inner
+            .tool_failure_count
+            .fetch_add(1, Ordering::Relaxed);
     }
 
     /// Record a search query with latency
     pub fn record_search(&self, latency_ms: u64) {
         self.inner.search_queries.fetch_add(1, Ordering::Relaxed);
-        self.inner.total_search_latency_ms.fetch_add(latency_ms, Ordering::Relaxed);
+        self.inner
+            .total_search_latency_ms
+            .fetch_add(latency_ms, Ordering::Relaxed);
     }
 
     /// Record app startup time
     pub fn record_startup_time(&self, startup_ms: u64) {
-        self.inner.app_startup_time_ms.store(startup_ms, Ordering::Relaxed);
+        self.inner
+            .app_startup_time_ms
+            .store(startup_ms, Ordering::Relaxed);
     }
 
     /// Get a snapshot of current metrics
@@ -102,7 +110,9 @@ impl Metrics {
         self.inner.tool_success_count.store(0, Ordering::Relaxed);
         self.inner.tool_failure_count.store(0, Ordering::Relaxed);
         self.inner.search_queries.store(0, Ordering::Relaxed);
-        self.inner.total_search_latency_ms.store(0, Ordering::Relaxed);
+        self.inner
+            .total_search_latency_ms
+            .store(0, Ordering::Relaxed);
         self.inner.app_startup_time_ms.store(0, Ordering::Relaxed);
         let _ = self.inner.custom_counters.lock().map(|mut m| m.clear());
     }

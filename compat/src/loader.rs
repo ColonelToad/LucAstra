@@ -35,9 +35,7 @@ pub struct FAT32Reader {
 
 impl FAT32Reader {
     pub fn new() -> Self {
-        Self {
-            boot_sector: None,
-        }
+        Self { boot_sector: None }
     }
 
     /// Parse a FAT32 boot sector from raw bytes.
@@ -80,8 +78,11 @@ impl FAT32Reader {
             fsinfo_sector: u16::from_le_bytes([data[48], data[49]]),
         };
 
-        tracing::info!("Parsed FAT32 boot sector: {} bytes/sector, {} sectors/cluster",
-            boot_sector.bytes_per_sector, boot_sector.sectors_per_cluster);
+        tracing::info!(
+            "Parsed FAT32 boot sector: {} bytes/sector, {} sectors/cluster",
+            boot_sector.bytes_per_sector,
+            boot_sector.sectors_per_cluster
+        );
 
         self.boot_sector = Some(boot_sector);
         Ok(())
@@ -94,7 +95,9 @@ impl FAT32Reader {
 
     /// Calculate the LBA of the FAT table.
     pub fn fat_lba(&self) -> Option<u32> {
-        self.boot_sector.as_ref().map(|bs| bs.hidden_sectors + bs.reserved_sectors as u32)
+        self.boot_sector
+            .as_ref()
+            .map(|bs| bs.hidden_sectors + bs.reserved_sectors as u32)
     }
 
     /// Calculate the LBA of the root directory.
@@ -117,8 +120,8 @@ impl Default for FAT32Reader {
 #[derive(Debug, Clone, Copy)]
 pub struct ELFHeader {
     pub magic: [u8; 4],
-    pub class: u8,    // 1=32-bit, 2=64-bit
-    pub endian: u8,   // 1=little, 2=big
+    pub class: u8,  // 1=32-bit, 2=64-bit
+    pub endian: u8, // 1=little, 2=big
     pub version: u8,
     pub os_abi: u8,
     pub abi_version: u8,

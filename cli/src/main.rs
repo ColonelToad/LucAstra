@@ -113,11 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             chat_command(config, message, max_messages, stream).await?;
         }
-        Commands::Embed {
-            text,
-            file,
-            output,
-        } => {
+        Commands::Embed { text, file, output } => {
             embed_command(config, text, file, output).await?;
         }
         Commands::Search {
@@ -153,9 +149,10 @@ async fn chat_command(
     println!("Type 'exit' or 'quit' to end the conversation.\n");
 
     let provider = create_provider(config.clone()).await?;
-    let mut conversation = Conversation::new(
-        Some("You are LucAstra, a helpful AI assistant integrated into an augmented operating system.".to_string()),
-    );
+    let mut conversation = Conversation::new(Some(
+        "You are LucAstra, a helpful AI assistant integrated into an augmented operating system."
+            .to_string(),
+    ));
     let rate_limiter = RateLimiter::new(10); // 10 requests per minute
 
     // Send initial message if provided
@@ -311,8 +308,22 @@ async fn status_command(
 
     println!("Provider: {}", provider.name());
     println!("Model: {}", provider.default_model());
-    println!("Streaming: {}", if provider.supports_streaming() { "✓" } else { "✗" });
-    println!("Embeddings: {}", if provider.supports_embeddings() { "✓" } else { "✗" });
+    println!(
+        "Streaming: {}",
+        if provider.supports_streaming() {
+            "✓"
+        } else {
+            "✗"
+        }
+    );
+    println!(
+        "Embeddings: {}",
+        if provider.supports_embeddings() {
+            "✓"
+        } else {
+            "✗"
+        }
+    );
 
     print!("Health: ");
     io::stdout().flush()?;

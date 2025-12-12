@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use lucastra_core::{DeviceInfo, DeviceType, Result};
+use std::collections::HashMap;
 use tracing::info;
 
 /// Device manager service: enumerates USB and input devices.
@@ -38,7 +38,8 @@ impl DeviceManager {
             mounted: false,
             mount_point: None,
         };
-        self.devices.insert("/dev/input/kbd0".to_string(), kbd_device);
+        self.devices
+            .insert("/dev/input/kbd0".to_string(), kbd_device);
 
         // Mock mouse device.
         let mouse_device = DeviceInfo {
@@ -49,7 +50,8 @@ impl DeviceManager {
             mounted: false,
             mount_point: None,
         };
-        self.devices.insert("/dev/input/mouse0".to_string(), mouse_device);
+        self.devices
+            .insert("/dev/input/mouse0".to_string(), mouse_device);
 
         info!("Device scan complete: {} devices found", self.devices.len());
         Ok(())
@@ -76,7 +78,9 @@ impl DeviceManager {
             info!("Device {} mounted at {}", path, mount_point);
             Ok(())
         } else {
-            Err(lucastra_core::LuCastraError::DeviceNotFound(path.to_string()))
+            Err(lucastra_core::LuCastraError::DeviceNotFound(
+                path.to_string(),
+            ))
         }
     }
 
@@ -88,7 +92,9 @@ impl DeviceManager {
             info!("Device {} unmounted", path);
             Ok(())
         } else {
-            Err(lucastra_core::LuCastraError::DeviceNotFound(path.to_string()))
+            Err(lucastra_core::LuCastraError::DeviceNotFound(
+                path.to_string(),
+            ))
         }
     }
 }

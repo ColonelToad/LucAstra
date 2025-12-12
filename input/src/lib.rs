@@ -1,6 +1,6 @@
-use std::collections::VecDeque;
 use lucastra_core::{InputEvent, Result};
 use lucastra_hal::InputDriver;
+use std::collections::VecDeque;
 use tracing::info;
 
 /// Input manager service: polls input devices and buffers events.

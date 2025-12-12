@@ -6,7 +6,7 @@ pub mod vector;
 
 pub use index::BM25Index;
 pub use tokenizer::Tokenizer;
-pub use vector::{VectorIndex, VectorSearchResult, VectorError};
+pub use vector::{VectorError, VectorIndex, VectorSearchResult};
 
 use lucastra_core::{command::SearchResult, Result};
 use std::collections::HashMap;
@@ -46,7 +46,11 @@ impl SearchService {
                     .get(&path)
                     .map(|c| c.chars().take(200).collect::<String>())
                     .unwrap_or_else(|| "...".to_string());
-                SearchResult { path, score, snippet }
+                SearchResult {
+                    path,
+                    score,
+                    snippet,
+                }
             })
             .collect())
     }

@@ -3,10 +3,10 @@
 //! A minimal HTTP client and HTML renderer for text-based web browsing.
 //! Features: HTTP GET, basic HTML parsing, tabs, history, bookmarks.
 
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use thiserror::Error;
-use regex::Regex;
 
 #[derive(Debug, Error)]
 pub enum BrowserError {
@@ -159,14 +159,19 @@ impl HtmlParser {
 
         // Decode HTML entities and normalize whitespace
         let text = Self::decode_entities(&text);
-        let lines: Vec<&str> = text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+        let lines: Vec<&str> = text
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty())
+            .collect();
         lines.join("\n")
     }
 
     /// Extract links from <a> tags
     fn extract_links(html: &str) -> Vec<Link> {
         let mut links = Vec::new();
-        let href_pattern = Regex::new(r#"<a\s+[^>]*href=["']([^"']+)["'][^>]*>([^<]*)</a>"#).unwrap();
+        let href_pattern =
+            Regex::new(r#"<a\s+[^>]*href=["']([^"']+)["'][^>]*>([^<]*)</a>"#).unwrap();
 
         for cap in href_pattern.captures_iter(html) {
             if let (Some(href_m), Some(text_m)) = (cap.get(1), cap.get(2)) {
@@ -385,7 +390,9 @@ mod tests {
         browser.tabs[0] = tab;
 
         browser.bookmark();
-        assert!(browser.bookmarks.contains(&"https://example.com".to_string()));
+        assert!(browser
+            .bookmarks
+            .contains(&"https://example.com".to_string()));
     }
 
     #[test]

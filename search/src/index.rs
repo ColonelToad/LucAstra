@@ -95,12 +95,7 @@ impl BM25Index {
                         .map(|d| d.len() as f32)
                         .unwrap_or(0.0);
 
-                    let bm25_score = self.bm25_score(
-                        term_freq,
-                        idf,
-                        doc_len,
-                        self.avg_doc_len,
-                    );
+                    let bm25_score = self.bm25_score(term_freq, idf, doc_len, self.avg_doc_len);
 
                     *scores.entry(doc_id.clone()).or_insert(0.0) += bm25_score;
                 }

@@ -6,9 +6,9 @@
 //! Features:
 //! - `relibc`: Enable relibc compatibility layer (experimental)
 
-pub mod syscall;
-pub mod loader;
 pub mod libreoffice;
+pub mod loader;
+pub mod syscall;
 
 pub use syscall::SyscallHandler;
 
@@ -32,7 +32,7 @@ mod tests {
     #[test]
     fn test_syscall_handler_open_close() {
         let mut handler = SyscallHandler::new();
-        
+
         // Test open
         let fd = handler.handle_syscall(2, &[0x1000, 0, 0]).unwrap();
         assert!(fd > 0);
@@ -77,7 +77,7 @@ mod tests {
 
         // Create a minimal valid FAT32 boot sector (512 bytes)
         let mut boot_sector = vec![0u8; 512];
-        boot_sector[0] = 0xEB;  // jump_boot
+        boot_sector[0] = 0xEB; // jump_boot
         boot_sector[1] = 0x3C;
         boot_sector[2] = 0x90;
         boot_sector[11] = 0x00; // bytes_per_sector (little endian)
@@ -111,7 +111,9 @@ mod tests {
         handler.handle_syscall(8, &[fd as u64, 0, 0]).unwrap();
 
         // Read all
-        let all_read = handler.handle_syscall(0, &[fd as u64, 0x2000, 1024]).unwrap();
+        let all_read = handler
+            .handle_syscall(0, &[fd as u64, 0x2000, 1024])
+            .unwrap();
         assert_eq!(all_read as usize, test_content.len());
 
         // Close

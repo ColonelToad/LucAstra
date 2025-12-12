@@ -1,3 +1,4 @@
+use std::path::Path;
 use tracing::level_filters::LevelFilter;
 use tracing_appender::rolling;
 use tracing_subscriber::{
@@ -6,10 +7,13 @@ use tracing_subscriber::{
     util::SubscriberInitExt,
     EnvFilter, Registry,
 };
-use std::path::Path;
 
 /// Initialize tracing with file appender and console output
-pub fn init_tracing(log_dir: &Path, log_level: &str, console_output: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_tracing(
+    log_dir: &Path,
+    log_level: &str,
+    console_output: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Create log directory if it doesn't exist
     std::fs::create_dir_all(log_dir)?;
 
@@ -23,11 +27,10 @@ pub fn init_tracing(log_dir: &Path, log_level: &str, console_output: bool) -> Re
         _ => LevelFilter::INFO,
     };
 
-    let registry = Registry::default()
-        .with(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new(level_filter.to_string()))
-        );
+    let registry = Registry::default().with(
+        EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| EnvFilter::new(level_filter.to_string())),
+    );
 
     // File appender - daily rotation
     let file_appender = rolling::daily(log_dir, "lucastra.log");
@@ -45,14 +48,9 @@ pub fn init_tracing(log_dir: &Path, log_level: &str, console_output: bool) -> Re
             .with_target(true)
             .with_level(true);
 
-        registry
-            .with(file_layer)
-            .with(console_layer)
-            .init();
+        registry.with(file_layer).with(console_layer).init();
     } else {
-        registry
-            .with(file_layer)
-            .init();
+        registry.with(file_layer).init();
     }
 
     tracing::info!("Tracing initialized with level: {}", log_level);
