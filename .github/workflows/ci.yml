@@ -77,22 +77,11 @@ jobs:
       - name: Build
         run: cargo build --locked --release --verbose
       
-      - name: Generate artifacts
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            mkdir -p dist
-            cp target/release/app.exe dist/ || echo "Binary not found"
-          else
-            mkdir -p dist
-            cp target/release/app dist/ || echo "Binary not found"
-          fi
-        shell: bash
-      
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: lucastra-${{ matrix.os }}
-          path: dist/
+          path: target/release/
           retention-days: 5
 
   test:
