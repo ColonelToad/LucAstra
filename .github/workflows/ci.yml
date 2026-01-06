@@ -43,7 +43,7 @@ jobs:
         run: cargo fmt -- --check
       
       - name: Run clippy
-        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+        run: cargo clippy --locked --workspace --all-features --bins --examples --tests -- -D warnings
 
   build:
     name: Build [${{ matrix.os }}]
