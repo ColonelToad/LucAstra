@@ -63,7 +63,7 @@ impl FileEntry {
 }
 
 /// File Manager state
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FileManager {
     pub current_dir: PathBuf,
     pub entries: Vec<FileEntry>,
@@ -105,7 +105,8 @@ impl FileManager {
             });
         }
 
-        let entries = std::fs::read_dir(&self.current_dir).map_err(|e| FileOpError::IoError(e))?;
+        // removed invalid `path` usage; read_dir on current_dir directly
+        let entries = std::fs::read_dir(&self.current_dir).map_err(FileOpError::IoError)?;
 
         for entry in entries.flatten() {
             if let Ok(file_entry) = FileEntry::from_path(&entry.path()) {
@@ -159,7 +160,7 @@ impl FileManager {
             return Err(FileOpError::NotFound(src.display().to_string()));
         }
 
-        std::fs::copy(src, dest).map_err(|e| FileOpError::IoError(e))?;
+        std::fs::copy(src, dest).map_err(FileOpError::IoError)?;
 
         tracing::info!("Copied {} to {}", src.display(), dest.display());
         Ok(())
@@ -171,7 +172,7 @@ impl FileManager {
             return Err(FileOpError::NotFound(src.display().to_string()));
         }
 
-        std::fs::rename(src, dest).map_err(|e| FileOpError::IoError(e))?;
+        std::fs::rename(src, dest).map_err(FileOpError::IoError)?;
 
         tracing::info!("Moved {} to {}", src.display(), dest.display());
         self.refresh()?;
@@ -185,9 +186,9 @@ impl FileManager {
         }
 
         if path.is_dir() {
-            std::fs::remove_dir_all(path).map_err(|e| FileOpError::IoError(e))?;
+            std::fs::remove_dir_all(path).map_err(FileOpError::IoError)?;
         } else {
-            std::fs::remove_file(path).map_err(|e| FileOpError::IoError(e))?;
+            std::fs::remove_file(path).map_err(FileOpError::IoError)?;
         }
 
         tracing::info!("Deleted {}", path.display());
