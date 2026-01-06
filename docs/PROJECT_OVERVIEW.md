@@ -403,4 +403,4 @@ This is just the beginning. The architecture is extensible, the codebase is clea
 
 **LucAstra: Where the OS thinks for itself.** 🧠💻
 
-*Built with Rust 🦀 | Powered by AI 🤖 | Designed for Privacy 🔒*
+*Built with Rust | Powered by AI | Designed for Privacy*

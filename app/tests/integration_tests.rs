@@ -4,10 +4,19 @@ use serde_json::to_string_pretty;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+fn unique_temp_dir(prefix: &str) -> PathBuf {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("time went backwards")
+        .as_nanos();
+    env::temp_dir().join(format!("{}_{}", prefix, nanos))
+}
 
 fn ensure_config_home_with_default() -> PathBuf {
     // Create an isolated temp config directory with a default config.json
-    let temp_dir = env::temp_dir().join("lucastra_system_state_test");
+    let temp_dir = unique_temp_dir("lucastra_system_state_test");
     let _ = fs::remove_dir_all(&temp_dir);
 
     // Create the directory and all parent directories
@@ -28,7 +37,7 @@ fn ensure_config_home_with_default() -> PathBuf {
 
 #[test]
 fn test_system_state_initialization() {
-    ensure_config_home_with_default();
+    let temp_dir = ensure_config_home_with_default();
     // Test that SystemState can be created
     let result = SystemState::new();
     assert!(result.is_ok(), "SystemState initialization failed");
@@ -36,6 +45,9 @@ fn test_system_state_initialization() {
     let state = result.unwrap();
     assert!(!state.config.llm.server_url.is_empty());
     assert!(!state.config.storage.data_dir.as_os_str().is_empty());
+
+    let _ = fs::remove_dir_all(temp_dir);
+    env::remove_var("LUCASTRA_CONFIG_HOME");
 }
 
 #[test]
@@ -43,7 +55,7 @@ fn test_config_persistence_roundtrip() {
     use lucastra_config::Config;
 
     // Use a temporary config directory
-    let temp_dir = std::env::temp_dir().join("lucastra_config_test_rt");
+    let temp_dir = unique_temp_dir("lucastra_config_test_rt");
     let _ = fs::remove_dir_all(&temp_dir);
     fs::create_dir_all(&temp_dir).unwrap();
 
@@ -62,7 +74,7 @@ fn test_config_persistence_roundtrip() {
 
 #[test]
 fn test_metrics_tracking_integration() {
-    ensure_config_home_with_default();
+    let temp_dir = ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
 
     // Record some metrics
@@ -75,11 +87,14 @@ fn test_metrics_tracking_integration() {
     assert_eq!(snapshot.command_count, 2);
     assert_eq!(snapshot.tool_success_count, 1);
     assert_eq!(snapshot.tool_failure_count, 1);
+
+    let _ = fs::remove_dir_all(temp_dir);
+    env::remove_var("LUCASTRA_CONFIG_HOME");
 }
 
 #[test]
 fn test_system_state_config_access() {
-    ensure_config_home_with_default();
+    let temp_dir = ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
     let config = state.get_config();
 
@@ -88,11 +103,14 @@ fn test_system_state_config_access() {
 
     // Verify tracing config is accessible
     assert!(!config.tracing.level.is_empty());
+
+    let _ = fs::remove_dir_all(temp_dir);
+    env::remove_var("LUCASTRA_CONFIG_HOME");
 }
 
 #[test]
 fn test_filesystem_operations() {
-    ensure_config_home_with_default();
+    let temp_dir = ensure_config_home_with_default();
     let state = SystemState::new().expect("Failed to create SystemState");
 
     // Verify that filesystem operations are accessible
@@ -100,4 +118,7 @@ fn test_filesystem_operations() {
     let list_result = state.filesystem.list_files("/mnt/root");
     // This may succeed or fail depending on implementation, but should not panic
     let _ = list_result;
+
+    let _ = fs::remove_dir_all(temp_dir);
+    env::remove_var("LUCASTRA_CONFIG_HOME");
 }
