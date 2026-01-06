@@ -18,7 +18,7 @@ fn test_host_file_access_integration() {
     let allowed_dirs: Vec<PathBuf> = config
         .allowed_host_dirs
         .iter()
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .collect();
     let _validator = FileAccessValidator::new(
         allowed_dirs,
@@ -34,14 +34,16 @@ fn test_host_file_access_integration() {
 #[test]
 fn test_file_access_validator_with_security_config() {
     // Create a security config
-    let mut security_config = SecurityConfig::default();
-    security_config.allow_host_read = true;
-    security_config.allow_host_write = false;
+    let security_config = SecurityConfig {
+        allow_host_read: true,
+        allow_host_write: false,
+        ..Default::default()
+    };
 
     let allowed_dirs: Vec<PathBuf> = security_config
         .allowed_host_dirs
         .iter()
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .collect();
     let validator = FileAccessValidator::new(
         allowed_dirs,
@@ -54,7 +56,7 @@ fn test_file_access_validator_with_security_config() {
     let test_path = std::env::temp_dir().join("test.txt");
     let result = validator.validate_path(&test_path, FileOperation::Read);
     // Should return error since temp_dir is likely not in allowed dirs, but that's expected
-    assert!(!result.is_ok()); // Validation should enforce whitelist
+    assert!(result.is_err()); // Validation should enforce whitelist
 }
 
 #[test]
@@ -80,7 +82,7 @@ fn test_file_access_tool_execution() {
         .security
         .allowed_host_dirs
         .iter()
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .collect();
     let validator = FileAccessValidator::new(
         allowed_dirs,
@@ -115,7 +117,7 @@ fn test_audit_logging_integration() {
     let allowed_dirs: Vec<PathBuf> = config
         .allowed_host_dirs
         .iter()
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .collect();
     let validator = FileAccessValidator::new(
         allowed_dirs,

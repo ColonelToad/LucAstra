@@ -131,6 +131,6 @@ mod tests {
         let provider = LlamafileProvider::new("http://localhost:9999".to_string());
         let result = provider.health_check().await;
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), false);
+        assert!(!result.unwrap());
     }
 }
