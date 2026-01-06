@@ -9,7 +9,13 @@ fn ensure_config_home_with_default() -> PathBuf {
     // Create an isolated temp config directory with a default config.json
     let temp_dir = env::temp_dir().join("lucastra_system_state_test");
     let _ = fs::remove_dir_all(&temp_dir);
+
+    // Create the directory and all parent directories
     fs::create_dir_all(&temp_dir).expect("Failed to create temp config dir");
+
+    // Create the data subdirectory as well (used by Config defaults)
+    let data_dir = temp_dir.join("data");
+    fs::create_dir_all(&data_dir).expect("Failed to create data dir");
 
     let cfg = Config::default();
     let cfg_path = temp_dir.join("config.json");
