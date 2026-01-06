@@ -86,7 +86,7 @@ impl LLMService {
             for (i, doc) in docs.iter().enumerate() {
                 prompt.push_str(&format!("{}. {}\n", i + 1, doc));
             }
-            prompt.push_str("\n");
+            prompt.push('\n');
         }
 
         prompt.push_str(&format!("## User Query\n{}\n\n## Answer", query));

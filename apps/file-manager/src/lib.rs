@@ -39,7 +39,7 @@ pub struct FileEntry {
 
 impl FileEntry {
     pub fn from_path(path: &Path) -> FileOpResult<Self> {
-        let metadata = std::fs::metadata(path).map_err(|e| FileOpError::IoError(e))?;
+        let metadata = std::fs::metadata(path).map_err(FileOpError::IoError)?;
 
         let name = path
             .file_name()

@@ -20,7 +20,7 @@ fn test_host_file_access_integration() {
         .iter()
         .map(|s| PathBuf::from(s))
         .collect();
-    let validator = FileAccessValidator::new(
+    let _validator = FileAccessValidator::new(
         allowed_dirs,
         config.allow_host_read,
         config.allow_host_write,

@@ -126,7 +126,7 @@ impl SyscallHandler {
         match syscall_num {
             // open(const char *path, int flags, mode_t mode)
             2 => {
-                let path_ptr = args.get(0).copied().unwrap_or(0) as usize;
+                let path_ptr = args.first().copied().unwrap_or(0) as usize;
                 let flags = args.get(1).copied().unwrap_or(0) as i32;
                 // Mock: just return a new fd
                 let path = format!("/path/{}", path_ptr);
@@ -136,7 +136,7 @@ impl SyscallHandler {
             }
             // read(int fd, void *buf, size_t count)
             0 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 let count = args.get(2).copied().unwrap_or(0) as usize;
 
                 if let Some(desc) = self.fd_table.get_mut(fd) {
@@ -159,7 +159,7 @@ impl SyscallHandler {
             }
             // write(int fd, const void *buf, size_t count)
             1 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 let count = args.get(2).copied().unwrap_or(0) as usize;
 
                 if let Some(desc) = self.fd_table.get(fd) {
@@ -177,14 +177,14 @@ impl SyscallHandler {
             }
             // close(int fd)
             3 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 let result = if self.fd_table.close(fd) { 0 } else { -9 };
                 tracing::debug!("syscall: close(fd={}) -> {}", fd, result);
                 Ok(result)
             }
             // lseek(int fd, off_t offset, int whence)
             8 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 let offset = args.get(1).copied().unwrap_or(0) as i64;
                 let whence = args.get(2).copied().unwrap_or(0) as i32;
 
@@ -214,7 +214,7 @@ impl SyscallHandler {
             }
             // dup(int oldfd)
             32 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 if let Some(new_fd) = self.fd_table.dup(fd) {
                     tracing::debug!("syscall: dup({}) -> {}", fd, new_fd);
                     Ok(new_fd as i64)
@@ -224,14 +224,14 @@ impl SyscallHandler {
             }
             // ioctl(int fd, unsigned long request, ...)
             16 => {
-                let fd = args.get(0).copied().unwrap_or(0) as i32;
+                let fd = args.first().copied().unwrap_or(0) as i32;
                 let request = args.get(1).copied().unwrap_or(0);
                 tracing::debug!("syscall: ioctl(fd={}, request=0x{:x}) -> 0", fd, request);
                 Ok(0)
             }
             // exit(int status)
             60 => {
-                let status = args.get(0).copied().unwrap_or(0) as i32;
+                let status = args.first().copied().unwrap_or(0) as i32;
                 tracing::info!("syscall: exit with status {}", status);
                 Ok(0)
             }
@@ -242,7 +242,7 @@ impl SyscallHandler {
             }
             // brk (stub)
             12 => {
-                let addr = args.get(0).copied().unwrap_or(0);
+                let addr = args.first().copied().unwrap_or(0);
                 tracing::debug!("syscall: brk(0x{:x}) -> 0x{:x}", addr, addr);
                 Ok(addr as i64)
             }

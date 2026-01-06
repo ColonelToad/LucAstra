@@ -48,14 +48,14 @@ impl BM25Index {
 
             self.term_docs
                 .entry(token.clone())
-                .or_insert_with(HashSet::new)
+                .or_default()
                 .insert(doc_id.to_string());
         }
 
         for (term, count) in term_count {
             self.term_freqs
                 .entry(term)
-                .or_insert_with(HashMap::new)
+                .or_default()
                 .insert(doc_id.to_string(), count);
         }
 

@@ -157,7 +157,7 @@ async fn chat_command(
 
     // Send initial message if provided
     if let Some(msg) = initial_message {
-        handle_user_message(&msg, &provider, &mut conversation, &rate_limiter, stream).await?;
+        handle_user_message(&msg, provider.as_ref(), &mut conversation, &rate_limiter, stream).await?;
     }
 
     // Interactive loop
@@ -178,7 +178,7 @@ async fn chat_command(
             break;
         }
 
-        handle_user_message(input, &provider, &mut conversation, &rate_limiter, stream).await?;
+        handle_user_message(input, provider.as_ref(), &mut conversation, &rate_limiter, stream).await?;
 
         // Trim conversation to max messages (TODO: implement proper trimming)
         // if conversation.messages().len() > max_messages {
@@ -191,7 +191,7 @@ async fn chat_command(
 
 async fn handle_user_message(
     message: &str,
-    provider: &Box<dyn lucastra_llm::providers::LLMProvider>,
+    provider: &dyn lucastra_llm::providers::LLMProvider,
     conversation: &mut Conversation,
     rate_limiter: &RateLimiter,
     _stream: bool,

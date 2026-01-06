@@ -23,7 +23,7 @@ pub enum ConfigError {
 pub type Result<T> = std::result::Result<T, ConfigError>;
 
 /// Main configuration structure for LucAstra
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub llm: LlmConfig,
@@ -439,21 +439,6 @@ impl Default for AdvancedConfig {
             crash_reporting: false,
             beta_channel: false,
             worker_threads: 0,
-        }
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            llm: LlmConfig::default(),
-            storage: StorageConfig::default(),
-            search: SearchConfig::default(),
-            gui: GuiConfig::default(),
-            security: SecurityConfig::default(),
-            advanced: AdvancedConfig::default(),
-            tracing: TracingConfig::default(),
-            metrics: MetricsConfig::default(),
         }
     }
 }

@@ -15,12 +15,19 @@ pub struct ServiceRegistry {
     services: Vec<Box<dyn Service + Send>>, // simple registry for now
 }
 
-impl ServiceRegistry {
-    pub fn new() -> Self {
+#[allow(clippy::derivable_impls)]
+impl Default for ServiceRegistry {
+    fn default() -> Self {
         Self {
             started: HashSet::new(),
             services: Vec::new(),
         }
+    }
+}
+
+impl ServiceRegistry {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn register(&mut self, service: Box<dyn Service + Send>) -> ServiceResult<()> {

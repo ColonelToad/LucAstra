@@ -36,8 +36,7 @@ fn main() {
                 continue;
             }
 
-            if input.starts_with("cd ") {
-                let path = &input[3..];
+            if let Some(path) = input.strip_prefix("cd ") {
                 match fm.navigate(PathBuf::from(path).as_path()) {
                     Ok(_) => println!("Directory changed"),
                     Err(e) => println!("Error: {}", e),
@@ -45,8 +44,7 @@ fn main() {
                 continue;
             }
 
-            if input.starts_with("rm ") {
-                let path = &input[3..];
+            if let Some(path) = input.strip_prefix("rm ") {
                 match fm.delete(PathBuf::from(path).as_path()) {
                     Ok(_) => println!("Deleted"),
                     Err(e) => println!("Error: {}", e),
@@ -54,8 +52,8 @@ fn main() {
                 continue;
             }
 
-            if input.starts_with("cp ") {
-                let parts: Vec<&str> = input[3..].split(' ').collect();
+            if let Some(stripped) = input.strip_prefix("cp ") {
+                let parts: Vec<&str> = stripped.split(' ').collect();
                 if parts.len() == 2 {
                     match fm.copy(
                         PathBuf::from(parts[0]).as_path(),

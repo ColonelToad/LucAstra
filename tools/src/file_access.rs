@@ -142,7 +142,7 @@ impl FileAccessValidator {
         // For now, detect common USB mount points
         if let Some(drive) = path.to_string_lossy().chars().next() {
             // D-Z typically USB, C is main drive
-            drive >= 'D' && drive <= 'Z'
+            ('D'..='Z').contains(&drive)
         } else {
             false
         }

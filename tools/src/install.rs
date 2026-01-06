@@ -64,7 +64,7 @@ impl InstallTool {
 
         // Download
         let download_output = Command::new("powershell")
-            .args(&[
+            .args([
                 "-Command",
                 &format!("Invoke-WebRequest -Uri '{}' -OutFile '{}'", url, temp_file),
             ])

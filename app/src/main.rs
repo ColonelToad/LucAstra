@@ -1,5 +1,4 @@
 use lucastra_app::SystemState;
-use lucastra_config;
 use lucastra_core::{Command, CommandPayload};
 use lucastra_kernel::KernelConfig;
 use tracing::info;

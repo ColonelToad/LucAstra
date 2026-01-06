@@ -146,7 +146,7 @@ impl Conversation {
         let has_system = self
             .messages
             .front()
-            .map_or(false, |m| m.role == Role::System);
+            .is_some_and(|m| m.role == Role::System);
         let system_offset = if has_system { 1 } else { 0 };
 
         // Remove old messages if exceeding max_messages
