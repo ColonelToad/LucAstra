@@ -15,11 +15,7 @@ fn test_host_file_access_integration() {
 
     // Test that we can create validator and check paths
     let config = &state.config.security;
-    let allowed_dirs: Vec<PathBuf> = config
-        .allowed_host_dirs
-        .iter()
-        .map(PathBuf::from)
-        .collect();
+    let allowed_dirs: Vec<PathBuf> = config.allowed_host_dirs.iter().map(PathBuf::from).collect();
     let _validator = FileAccessValidator::new(
         allowed_dirs,
         config.allow_host_read,
@@ -114,11 +110,7 @@ fn test_audit_logging_integration() {
     fs::create_dir_all(&audit_dir).unwrap();
 
     let config = SecurityConfig::default();
-    let allowed_dirs: Vec<PathBuf> = config
-        .allowed_host_dirs
-        .iter()
-        .map(PathBuf::from)
-        .collect();
+    let allowed_dirs: Vec<PathBuf> = config.allowed_host_dirs.iter().map(PathBuf::from).collect();
     let validator = FileAccessValidator::new(
         allowed_dirs,
         config.allow_host_read,
